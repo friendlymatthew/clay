@@ -1,0 +1,18 @@
+[package]
+name = "app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+gloo = { version = "0.11.0", features = ["utils"] }
+console_error_panic_hook = "0.1.7"
+gloo-net = "0.6.0"
+log = "0.4.22"
+yew = { version = "0.21.0", features = ["csr"] }
+yew-router = "0.18.0"
+yew-hooks = "0.3.2"
+wasm-logger.workspace = true
+web-sys.workspace = true
+wasm-bindgen-futures.workspace = true
+editor = { path = "../editor" }
+math = { path = "../math" }
