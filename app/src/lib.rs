@@ -5,7 +5,7 @@ pub use use_toolbar::*;
 pub mod components;
 mod use_camera;
 mod use_pointer;
-mod use_stack;
+mod use_shapes;
 mod use_toolbar;
 
 use std::{ops::Deref, rc::Rc};

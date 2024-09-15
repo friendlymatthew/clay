@@ -1,7 +1,7 @@
 use gloo::utils::document;
 use yew::prelude::*;
 
-use crate::{use_stack::ShapeCatalogState, CameraState};
+use crate::{use_shapes::ShapeCatalogState, CameraState};
 
 #[derive(Properties, PartialEq)]
 pub struct InnerCanvasProps {

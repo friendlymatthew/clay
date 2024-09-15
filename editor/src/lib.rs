@@ -1,7 +1,10 @@
 mod rectangle;
+mod shape;
 mod tool;
+
 use math::Point2D;
 pub use rectangle::Rectangle;
+pub use shape::Shape;
 pub use tool::Tool;
 
 pub fn get_box(p1: Point2D, p2: Point2D) -> (Point2D, Point2D) {

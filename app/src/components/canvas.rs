@@ -11,7 +11,7 @@ use math::Point2D;
 use crate::{
     components::{InnerCanvas, Toolbar},
     use_pointer_down_callback, use_pointer_move_callback, use_pointer_up_callback,
-    use_stack::ShapeCatalogState,
+    use_shapes::ShapeCatalogState,
     CameraState, CameraStateAction,
 };
 

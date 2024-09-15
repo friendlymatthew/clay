@@ -1,4 +1,4 @@
-use crate::use_stack::{ShapeCatalogAction, ShapeCatalogState};
+use crate::use_shapes::{ShapeCatalogAction, ShapeCatalogState};
 use crate::{CameraState, CameraStateAction};
 use editor::{get_box, Tool};
 use math::Point2D;
