@@ -22,10 +22,12 @@ pub fn InnerCanvas(props: &InnerCanvasProps) -> Html {
 
         element
             .set_attribute(
-                "transform",
-                &format!("scale({}) translate({}, {})", z, x, y),
+                "style",
+                &format!(
+                    "transform: scale({z}) translate({x}px, {y}px); transform-origin: center;"
+                ),
             )
-            .expect("failed to set transform attribute");
+            .expect("failed to set element");
     });
 
     let camera_state = props.camera.clone();
@@ -36,7 +38,7 @@ pub fn InnerCanvas(props: &InnerCanvasProps) -> Html {
                 // defines usable content for the SVG
                 <rect id="box" x="100" y="100" height="100" width="100" />
             </defs>
-            <g id="group" class="transform transform-gpu">
+            <g id="group">
                 {(*props.shapes).html(&*camera_state)}
             </g>
         </svg>
