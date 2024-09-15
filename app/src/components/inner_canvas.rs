@@ -18,10 +18,6 @@ pub fn InnerCanvas(props: &InnerCanvasProps) -> Html {
 
         let (x, y, z) = (*camera).coord();
         web_sys::console::log_1(&format!("camera coord: x: {}, y: {}, z: {}", x, y, z).into());
-        if z == 0.0 || z.is_nan() {
-            panic!("Z can't be 0");
-        }
-
         web_sys::console::log_1(&format!("scale({}) translate({}, {})", z, x, y).into());
 
         element
@@ -39,10 +35,10 @@ pub fn InnerCanvas(props: &InnerCanvasProps) -> Html {
             <defs>
                 // defines usable content for the SVG
                 <rect id="box" x="100" y="100" height="100" width="100" />
-                <g id="group" class="transform transform-gpu">
-                    {(*props.shapes).html(&*camera_state)}
-                </g>
             </defs>
+            <g id="group" class="transform transform-gpu">
+                {(*props.shapes).html(&*camera_state)}
+            </g>
         </svg>
     }
 }
