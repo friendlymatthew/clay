@@ -6,12 +6,13 @@ use web_sys::console;
 use yew::prelude::*;
 
 use editor::Tool;
-use math::{Point2D, Point3D};
+use math::Point2D;
 
 use crate::{
     components::{InnerCanvas, Toolbar},
-    use_stack::ShapeCatalogState,
     use_pointer_down_callback, use_pointer_move_callback, use_pointer_up_callback,
+    use_stack::ShapeCatalogState,
+    CameraState,
 };
 
 #[function_component]
@@ -26,13 +27,13 @@ pub fn Canvas() -> Html {
     });
 
     let current_tool = use_state(|| Tool::Hand);
-    let camera = use_state(|| Point3D::new(0.0, 0.0, 1.0));
+    let camera = use_reducer(|| CameraState::default());
 
     let global_pointer_down = use_state(|| false);
 
     // hand tool
     let initial_drag = use_state(|| Point2D::new(0.0, 0.0));
-    let initial_camera = use_state(|| Point3D::new(0.0, 0.0, 1.0));
+    let temp_canvas_position = use_state(|| Point2D::new(0.0, 0.0));
 
     // draw tool
     let shape_catalog = use_reducer(|| ShapeCatalogState::default());
@@ -76,9 +77,9 @@ pub fn Canvas() -> Html {
 
     let pointer_down_callback = use_pointer_down_callback(
         *current_tool,
-        *camera,
+        camera.clone(),
         initial_drag.clone(),
-        initial_camera.clone(),
+        temp_canvas_position.clone(),
         global_pointer_down.clone(),
         shape_catalog.clone(),
         active_shape.clone(),
@@ -88,7 +89,7 @@ pub fn Canvas() -> Html {
         *current_tool,
         global_pointer_down.clone(),
         *initial_drag,
-        *initial_camera,
+        *temp_canvas_position,
         camera.clone(),
         shape_catalog.clone(),
         active_shape.clone(),
@@ -97,12 +98,16 @@ pub fn Canvas() -> Html {
 
     let pointer_up_callback = use_pointer_up_callback(
         *current_tool,
-        *camera,
-        initial_camera.clone(),
+        camera.clone(),
+        temp_canvas_position.clone(),
         global_pointer_down.clone(),
         shape_catalog.clone(),
         active_shape.clone(),
     );
+
+    use_effect_with(camera.clone(), move |camera| {
+        console::log_1(&format!("camera z: {}", camera.zoom()).into());
+    });
 
     use_effect_with(global_pointer_down.clone(), move |pointer| {
         console::log_1(&format!("pointer: {:?}", (*pointer)).into())

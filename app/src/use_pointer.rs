@@ -1,15 +1,16 @@
 use crate::use_stack::{ShapeCatalogAction, ShapeCatalogState};
-use editor::{get_box, viewport_to_global, Tool};
-use math::{Point2D, Point3D};
+use crate::{CameraState, CameraStateAction};
+use editor::{get_box, Tool};
+use math::Point2D;
 use web_sys::console;
 use yew::{hook, Callback, PointerEvent, UseReducerHandle, UseStateHandle};
 
 #[hook]
 pub fn use_pointer_down_callback(
     current_tool: Tool,
-    camera: Point3D,
+    camera: UseReducerHandle<CameraState>,
     initial_drag: UseStateHandle<Point2D>,
-    initial_camera: UseStateHandle<Point3D>,
+    temp_canvas_position: UseStateHandle<Point2D>,
     global_pointer_down: UseStateHandle<bool>,
     shape_catalog: UseReducerHandle<ShapeCatalogState>,
     active_shape: UseStateHandle<Option<usize>>,
@@ -29,7 +30,7 @@ pub fn use_pointer_down_callback(
             console::log_1(&"pointer down".into());
 
             match current_tool {
-                Tool::Hand => initial_camera.set(camera),
+                Tool::Hand => temp_canvas_position.set((*camera).canvas_position()),
                 Tool::Draw => {
                     shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);
                     let next_id = (*shape_catalog).next_id();
@@ -49,8 +50,8 @@ pub fn use_pointer_move_callback(
     current_tool: Tool,
     global_pointer_down: UseStateHandle<bool>,
     initial_drag: Point2D,
-    initial_camera: Point3D,
-    camera: UseStateHandle<Point3D>,
+    temp_canvas_position: Point2D,
+    camera: UseReducerHandle<CameraState>,
     shape_catalog: UseReducerHandle<ShapeCatalogState>,
     active_shape: UseStateHandle<Option<usize>>,
     client_position: UseStateHandle<Option<(i32, i32)>>,
@@ -68,18 +69,18 @@ pub fn use_pointer_move_callback(
                 true => {
                     let client_position = Point2D::new(client_x as f32, client_y as f32);
 
-                    let camera_coord = *camera;
+                    let camera_state = camera.clone();
 
-                    let p1 = viewport_to_global(initial_drag, camera_coord);
-                    let p2 = viewport_to_global(client_position, camera_coord);
+                    let p1 = (*camera_state).convert_viewport_to_global(initial_drag);
+                    let p2 = (*camera_state).convert_viewport_to_global(client_position);
 
                     match current_tool {
                         Tool::Hand => {
-                            let (initial_x, inital_y, _) = initial_camera.coord();
-                            let camera_z = camera_coord.three();
-
-                            let new_camera = Point3D::new(initial_x, inital_y, camera_z);
-                            camera.set(new_camera.add_with_point2d(p2 - p1));
+                            let offset = p2 - p1;
+                            camera.dispatch(CameraStateAction::MoveCamera {
+                                temp_canvas_position,
+                                offset,
+                            });
                         }
                         Tool::Draw => {
                             if let Some(id) = *active_shape {
@@ -107,8 +108,8 @@ pub fn use_pointer_move_callback(
 #[hook]
 pub fn use_pointer_up_callback(
     current_tool: Tool,
-    camera: Point3D,
-    initial_camera: UseStateHandle<Point3D>,
+    camera: UseReducerHandle<CameraState>,
+    temp_canvas_position: UseStateHandle<Point2D>,
     global_pointer_down: UseStateHandle<bool>,
     shape_catalog: UseReducerHandle<ShapeCatalogState>,
     active_shape: UseStateHandle<Option<usize>>,
@@ -120,7 +121,7 @@ pub fn use_pointer_up_callback(
             global_pointer_down.set(false);
 
             match current_tool {
-                Tool::Hand => initial_camera.set(camera),
+                Tool::Hand => temp_canvas_position.set((*camera).canvas_position()),
                 Tool::Draw => {
                     let catalog = shape_catalog.clone();
 

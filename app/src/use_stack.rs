@@ -1,11 +1,11 @@
 use std::{cell::RefCell, collections::BTreeMap};
 
 use editor::Rectangle;
-use math::{Point2D, Point3D};
+use math::Point2D;
 use web_sys::console;
 use yew::{classes, html, virtual_dom::VNode, Html, Reducible};
 
-use crate::EqRc;
+use crate::{CameraState, EqRc};
 
 pub enum ShapeCatalogAction {
     SelectShape(usize),
@@ -28,7 +28,7 @@ impl ShapeCatalogState {
         self.shapes.borrow().len()
     }
 
-    pub fn html(&self, camera: Point3D) -> VNode {
+    pub fn html(&self, camera: &CameraState) -> VNode {
         self.shapes
             .borrow()
             .iter()
@@ -42,28 +42,22 @@ impl ShapeCatalogState {
                     ..
                 } = s;
 
-                let (pos_x, pos_y) = position.coord();
-                let (w, h) = width_height.coord();
+                let (sx, sy) = position.coord();
+                let (sw, sh) = width_height.coord();
 
                 console::log_1(
-                    &format!(
-                        "RERENDER shape\nx: {}, y: {}, w: {}, h: {}",
-                        pos_x, pos_y, w, h
-                    )
-                    .into(),
+                    &format!("RERENDER shape\nx: {}, y: {}, w: {}, h: {}", sx, sy, sw, sh).into(),
                 );
 
-                let path = format!("M {pos_x} {pos_y} h {w} v {h} h -{w} Z");
+                let path = format!("M {sx} {sy} h {sw} v {sh} h -{sw} Z");
+
                 let stroke = if selected {
                     "stroke-blue-800"
                 } else {
                     "stroke-black"
                 };
 
-                let z = camera.three();
-                if z == 0.0 {
-                    panic!("z cannot be 0");
-                }
+                let z = camera.zoom();
 
                 let stroke_w = if selected {
                     format!("stroke-width-[{}px]", 2 as f32 / z)
