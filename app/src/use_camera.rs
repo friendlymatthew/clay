@@ -2,6 +2,7 @@ use math::Point2D;
 use yew::Reducible;
 
 pub enum CameraStateAction {
+    Refresh,
     MoveCamera {
         temp_canvas_position: Point2D,
         offset: Point2D,
@@ -74,6 +75,13 @@ impl Reducible for CameraState {
             } => {
                 return Self {
                     canvas_position: temp_canvas_position + offset,
+                    zoom: self.zoom,
+                }
+                .into();
+            }
+            CameraStateAction::Refresh => {
+                return Self {
+                    canvas_position: self.canvas_position,
                     zoom: self.zoom,
                 }
                 .into();

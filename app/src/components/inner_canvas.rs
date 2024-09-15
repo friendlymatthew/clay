@@ -37,6 +37,7 @@ pub fn InnerCanvas(props: &InnerCanvasProps) -> Html {
             <defs>
                 // defines usable content for the SVG
                 <rect id="box" x="100" y="100" height="100" width="100" />
+                <circle id="circle" cx="200" cy="200" r="50" />
             </defs>
             <g id="group">
                 {(*props.shapes).html(&*camera_state)}

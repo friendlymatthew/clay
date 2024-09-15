@@ -31,7 +31,7 @@ pub fn use_pointer_down_callback(
 
             match current_tool {
                 Tool::Hand => temp_canvas_position.set((*camera).canvas_position()),
-                Tool::Draw => {
+                Tool::Rect => {
                     shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);
                     let next_id = (*shape_catalog).next_id();
                     active_shape.set(Some(next_id));
@@ -40,6 +40,7 @@ pub fn use_pointer_down_callback(
                 Tool::Text => {
                     shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);
                 }
+                _ => todo!(),
             }
         }
     })
@@ -82,7 +83,7 @@ pub fn use_pointer_move_callback(
                                 offset,
                             });
                         }
-                        Tool::Draw => {
+                        Tool::Rect => {
                             if let Some(id) = *active_shape {
                                 let (position, width_height) = get_box(p1, p2);
 
@@ -98,6 +99,7 @@ pub fn use_pointer_move_callback(
                         }
                         Tool::Select => {}
                         Tool::Text => {}
+                        _ => todo!(),
                     }
                 }
             }
@@ -107,7 +109,7 @@ pub fn use_pointer_move_callback(
 
 #[hook]
 pub fn use_pointer_up_callback(
-    current_tool: Tool,
+    current_tool: UseStateHandle<Tool>,
     camera: UseReducerHandle<CameraState>,
     temp_canvas_position: UseStateHandle<Point2D>,
     global_pointer_down: UseStateHandle<bool>,
@@ -120,14 +122,15 @@ pub fn use_pointer_up_callback(
 
             global_pointer_down.set(false);
 
-            match current_tool {
+            match *current_tool {
                 Tool::Hand => temp_canvas_position.set((*camera).canvas_position()),
-                Tool::Draw => {
+                Tool::Rect | Tool::Circle | Tool::Line | Tool::Freehand => {
                     let catalog = shape_catalog.clone();
 
                     console::log_1(&format!("num items: {}", (*catalog).next_id()).into());
 
                     active_shape.set(None);
+                    current_tool.set(Tool::Hand);
                 }
                 Tool::Select => {}
                 Tool::Text => {}

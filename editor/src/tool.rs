@@ -1,7 +1,10 @@
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Tool {
     Hand,
-    Draw,
+    Rect,
+    Line,
+    Circle,
+    Freehand,
     Select,
     Text,
 }
