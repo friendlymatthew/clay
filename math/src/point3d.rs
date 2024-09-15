@@ -12,6 +12,10 @@ pub struct Point3D(pub v128);
 
 impl Point3D {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
+        if z == 0.0 {
+            panic!("z cannot be 0")
+        }
+
         Self(f32x4(x, y, z, 0.0))
     }
 
@@ -59,7 +63,13 @@ impl Point3D {
     }
 
     pub fn three(self) -> f32 {
-        f32x4_extract_lane::<2>(self.0)
+        let three = f32x4_extract_lane::<2>(self.0);
+
+        if three == 0.0 {
+            panic!("three cannot be 0.0");
+        }
+
+        three
     }
 
     pub fn add_with_point2d(self, other: Point2D) -> Point3D {
@@ -167,5 +177,24 @@ mod tests {
         let p2 = Point3D::new(3.2, 4.3, 9.1);
 
         assert_eq!(p1 + p2, Point3D::new(3.2, 6.3, 11.2));
+    }
+
+    #[wasm_bindgen_test]
+    fn test_getters() {
+        let p1 = Point3D::new(0.2, 2.0, 4.0);
+
+        assert_eq!(p1.one(), 0.2);
+        assert_eq!(p1.two(), 2.0);
+        assert_eq!(p1.three(), 4.0);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_add_with_2d() {
+        let camera = Point3D::new(30.0, 29.0, 28.0);
+        let point = Point2D::new(2.0, 3.0);
+
+        let (x, y, z) = camera.add_with_point2d(point).coord();
+
+        assert_eq!((32.0, 32.0, 28.0), (x, y, z));
     }
 }

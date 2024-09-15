@@ -1,9 +1,8 @@
-use crate::EqRc;
-use editor::{get_box, viewport_to_global, Rectangle, ShapeCatalog, Tool};
+use crate::use_stack::{ShapeCatalogAction, ShapeCatalogState};
+use editor::{get_box, viewport_to_global, Tool};
 use math::{Point2D, Point3D};
-use std::cell::RefCell;
 use web_sys::console;
-use yew::{hook, Callback, PointerEvent, UseStateHandle};
+use yew::{hook, Callback, PointerEvent, UseReducerHandle, UseStateHandle};
 
 #[hook]
 pub fn use_pointer_down_callback(
@@ -12,7 +11,7 @@ pub fn use_pointer_down_callback(
     initial_drag: UseStateHandle<Point2D>,
     initial_camera: UseStateHandle<Point3D>,
     global_pointer_down: UseStateHandle<bool>,
-    shape_catalog: UseStateHandle<EqRc<RefCell<ShapeCatalog>>>,
+    shape_catalog: UseReducerHandle<ShapeCatalogState>,
     active_shape: UseStateHandle<Option<usize>>,
 ) -> Callback<PointerEvent> {
     let shape_catalog = shape_catalog.clone();
@@ -23,27 +22,23 @@ pub fn use_pointer_down_callback(
             let (x, y) = (e.client_x(), e.client_y());
 
             let pointer_position = Point2D::new(x as f32, y as f32);
-            let global_pointer_position = viewport_to_global(pointer_position, camera);
 
             initial_drag.set(pointer_position);
             global_pointer_down.set(true);
-
-            let p = viewport_to_global(pointer_position, camera);
 
             console::log_1(&"pointer down".into());
 
             match current_tool {
                 Tool::Hand => initial_camera.set(camera),
                 Tool::Draw => {
-                    console::log_1(&"pointer draw".into());
-                    shape_catalog.borrow_mut().unselect_all();
-                    let rectangle = Rectangle::new(p, p);
-                    let next_id = shape_catalog.borrow_mut().add_shape(rectangle);
+                    shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);
+                    let next_id = (*shape_catalog).next_id();
                     active_shape.set(Some(next_id));
-                    console::log_1(&"set shape".into());
                 }
                 Tool::Select => {}
-                Tool::Text => {}
+                Tool::Text => {
+                    shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);
+                }
             }
         }
     })
@@ -52,11 +47,11 @@ pub fn use_pointer_down_callback(
 #[hook]
 pub fn use_pointer_move_callback(
     current_tool: Tool,
-    global_pointer_down: bool,
+    global_pointer_down: UseStateHandle<bool>,
     initial_drag: Point2D,
     initial_camera: Point3D,
     camera: UseStateHandle<Point3D>,
-    shape_catalog: UseStateHandle<EqRc<RefCell<ShapeCatalog>>>,
+    shape_catalog: UseReducerHandle<ShapeCatalogState>,
     active_shape: UseStateHandle<Option<usize>>,
     client_position: UseStateHandle<Option<(i32, i32)>>,
 ) -> Callback<PointerEvent> {
@@ -64,52 +59,46 @@ pub fn use_pointer_move_callback(
         move |e: PointerEvent| {
             e.prevent_default();
 
-            let (x, y) = (e.client_x(), e.client_y());
+            let (client_x, client_y) = (e.client_x(), e.client_y());
 
-            client_position.set(Some((x, y)));
+            client_position.set(Some((client_x, client_y)));
 
-            if !global_pointer_down {
-                return;
-            }
+            match *global_pointer_down {
+                false => {}
+                true => {
+                    let client_position = Point2D::new(client_x as f32, client_y as f32);
 
-            console::log_1(&format!("print x, y: {}, {}", e.client_x(), e.client_y(),).into());
-            let p = Point2D::new(x as f32, y as f32);
+                    let camera_coord = *camera;
 
-            let camera_coord = *camera;
+                    let p1 = viewport_to_global(initial_drag, camera_coord);
+                    let p2 = viewport_to_global(client_position, camera_coord);
 
-            let p1 = viewport_to_global(initial_drag, camera_coord);
-            let p2 = viewport_to_global(p, camera_coord);
+                    match current_tool {
+                        Tool::Hand => {
+                            let (initial_x, inital_y, _) = initial_camera.coord();
+                            let camera_z = camera_coord.three();
 
-            let offset = p2 - p1;
+                            let new_camera = Point3D::new(initial_x, inital_y, camera_z);
+                            camera.set(new_camera.add_with_point2d(p2 - p1));
+                        }
+                        Tool::Draw => {
+                            if let Some(id) = *active_shape {
+                                let (position, width_height) = get_box(p1, p2);
 
-            console::log_1(&format!("{}, {}", offset.coord().0, offset.coord().1).into());
-
-            // todo: roundabout way.
-            let (x, y, _) = initial_camera.coord();
-            let p = Point3D::new(x, y, camera_coord.two());
-
-            match current_tool {
-                Tool::Hand => camera.set(p.add_with_point2d(offset)),
-                Tool::Draw => {
-                    if let Some(active_shape) = *active_shape {
-                        let (position, width_height) = get_box(p1, p2);
-                        let catalog_state = shape_catalog.clone();
-                        let catalog = (*catalog_state).clone();
-
-                        catalog
-                            .borrow_mut()
-                            .update_shape(
-                                &active_shape,
-                                Some(position),
-                                Some(width_height),
-                                Some(false),
-                            )
-                            .expect("failed to update shape state");
-
-                        shape_catalog.set(catalog);
+                                shape_catalog.dispatch(ShapeCatalogAction::UpsertShape {
+                                    id,
+                                    position,
+                                    width_height,
+                                    selected: false,
+                                });
+                            } else {
+                                panic!("no active shape")
+                            }
+                        }
+                        Tool::Select => {}
+                        Tool::Text => {}
                     }
                 }
-                _ => unreachable!(),
             }
         }
     })
@@ -121,7 +110,7 @@ pub fn use_pointer_up_callback(
     camera: Point3D,
     initial_camera: UseStateHandle<Point3D>,
     global_pointer_down: UseStateHandle<bool>,
-    shape_catalog: UseStateHandle<EqRc<RefCell<ShapeCatalog>>>,
+    shape_catalog: UseReducerHandle<ShapeCatalogState>,
     active_shape: UseStateHandle<Option<usize>>,
 ) -> Callback<PointerEvent> {
     Callback::from({
@@ -133,10 +122,10 @@ pub fn use_pointer_up_callback(
             match current_tool {
                 Tool::Hand => initial_camera.set(camera),
                 Tool::Draw => {
-                    let shape_catalog_state = shape_catalog.clone();
-                    let catalog_state = shape_catalog.clone();
-                    let number_of_shapes = (*shape_catalog_state).borrow().catalog.len();
-                    console::log_1(&format!("num: {number_of_shapes}").into());
+                    let catalog = shape_catalog.clone();
+
+                    console::log_1(&format!("num items: {}", (*catalog).next_id()).into());
+
                     active_shape.set(None);
                 }
                 Tool::Select => {}

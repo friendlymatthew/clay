@@ -23,6 +23,4 @@ The effects of SIMD are not measured yet. But the original implementation [writt
 
 
 ## SIMD
-clay operates on 128-bit SIMD vectors or 4 32-bit floats. Canvas objects are represented as `<f32, f32, _, _> : f32x4` vectors. The camera lives in 3-dimensional space with `<f32, f32, f32, _>: f32x4` coordinates.
-
-The geometric operations involved are trivial to implement in SIMD.
+clay operates on 128-bit SIMD vectors or 4 32-bit floats. Canvas objects are represented as `<f32, f32, _, _> : f32x4` vectors. The camera lives in 3-dimensional space with `<f32, f32, f32, _>: f32x4` coordinates. The geometric operations involved are trivial to implement in SIMD.

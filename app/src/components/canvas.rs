@@ -1,17 +1,17 @@
-use std::cell::RefCell;
-
 use gloo::{
     events::EventListener,
     utils::{document, window},
 };
+use web_sys::console;
 use yew::prelude::*;
 
-use editor::{ShapeCatalog, Tool};
+use editor::Tool;
 use math::{Point2D, Point3D};
 
 use crate::{
     components::{InnerCanvas, Toolbar},
-    use_pointer_down_callback, use_pointer_move_callback, use_pointer_up_callback, EqRc,
+    use_stack::ShapeCatalogState,
+    use_pointer_down_callback, use_pointer_move_callback, use_pointer_up_callback,
 };
 
 #[function_component]
@@ -25,7 +25,7 @@ pub fn Canvas() -> Html {
         move || drop(listener)
     });
 
-    let current_tool = use_state(|| Tool::Draw);
+    let current_tool = use_state(|| Tool::Hand);
     let camera = use_state(|| Point3D::new(0.0, 0.0, 1.0));
 
     let global_pointer_down = use_state(|| false);
@@ -35,7 +35,8 @@ pub fn Canvas() -> Html {
     let initial_camera = use_state(|| Point3D::new(0.0, 0.0, 1.0));
 
     // draw tool
-    let shape_catalog = use_state(|| EqRc::new(RefCell::new(ShapeCatalog::new())));
+    let shape_catalog = use_reducer(|| ShapeCatalogState::default());
+
     let active_shape: UseStateHandle<Option<usize>> = use_state(|| None);
 
     let client_position: UseStateHandle<Option<(i32, i32)>> = use_state(|| None);
@@ -85,7 +86,7 @@ pub fn Canvas() -> Html {
 
     let pointer_move_callback = use_pointer_move_callback(
         *current_tool,
-        *global_pointer_down,
+        global_pointer_down.clone(),
         *initial_drag,
         *initial_camera,
         camera.clone(),
@@ -102,6 +103,10 @@ pub fn Canvas() -> Html {
         shape_catalog.clone(),
         active_shape.clone(),
     );
+
+    use_effect_with(global_pointer_down.clone(), move |pointer| {
+        console::log_1(&format!("pointer: {:?}", (*pointer)).into())
+    });
 
     html! {
         <div id="canvas" class="overflow-hidden top-0 left-0 relative w-screen h-screen" onpointerdown={pointer_down_callback} onpointermove={pointer_move_callback} onpointerup={pointer_up_callback}>
