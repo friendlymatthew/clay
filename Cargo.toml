@@ -11,5 +11,8 @@ web-sys = { version = "0.3.70", features = [
     "MouseEvent",
     "Event",
     "PointerEvent",
+    "Node",
+    "Element",
+    "NodeList",
 ] }
 eyre = "0.6.12"
