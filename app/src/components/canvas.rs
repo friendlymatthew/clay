@@ -69,7 +69,7 @@ pub fn Canvas() -> Html {
                 }
 
                 if let Some(tool) = match event_key.as_str() {
-                    "m" => Some(Tool::Hand),
+                    "h" => Some(Tool::Hand),
                     "s" => Some(Tool::Select),
                     "t" => Some(Tool::Text),
                     "r" => Some(Tool::Rect),
@@ -122,7 +122,7 @@ pub fn Canvas() -> Html {
                 }
                 Tool::Select => {
                     canvas_div
-                        .set_attribute("class", "cursor-pointer")
+                        .set_attribute("class", "cursor-normal")
                         .expect("failed to set");
                 }
                 Tool::Text => {
