@@ -1,7 +1,4 @@
-use gloo::{
-    events::EventListener,
-    utils::{document, window},
-};
+use gloo::{events::EventListener, utils::document};
 use web_sys::{console, wasm_bindgen::JsCast};
 use yew::prelude::*;
 
@@ -18,15 +15,23 @@ use crate::{
 #[function_component]
 pub fn Canvas() -> Html {
     // global management
-    use_effect(|| {
-        let listener = EventListener::new(&window(), "contextmenu", move |e| {
-            e.prevent_default();
-        });
+    // use_effect(|| {
+    //     let listener = EventListener::new_with_options(
+    //         &window(),
+    //         "contextmenu",
+    //         EventListenerOptions {
+    //             passive: false,
+    //             phase: gloo::events::EventListenerPhase::Bubble,
+    //         },
+    //         move |e| {
+    //             e.prevent_default();
+    //         },
+    //     );
 
-        move || drop(listener)
-    });
+    //     move || drop(listener)
+    // });
 
-    let current_tool = use_state(|| Tool::Hand);
+    let current_tool = use_state(|| Tool::Select);
     let camera = use_reducer(|| CameraState::default());
 
     use_effect({
@@ -89,8 +94,10 @@ pub fn Canvas() -> Html {
 
     // draw tool
     let shape_catalog = use_reducer(|| ShapeCatalogState::default());
+    let active_shape = use_state(|| None);
 
-    let active_shape: UseStateHandle<Option<usize>> = use_state(|| None);
+    // select tool
+    let selection_box = use_state(|| None);
 
     let client_position: UseStateHandle<Option<(i32, i32)>> = use_state(|| None);
 
@@ -136,6 +143,7 @@ pub fn Canvas() -> Html {
         global_pointer_down.clone(),
         shape_catalog.clone(),
         active_shape.clone(),
+        selection_box.clone(),
     );
 
     let pointer_move_callback = use_pointer_move_callback(
@@ -147,6 +155,7 @@ pub fn Canvas() -> Html {
         shape_catalog.clone(),
         active_shape.clone(),
         client_position.clone(),
+        selection_box.clone(),
     );
 
     let pointer_up_callback = use_pointer_up_callback(
@@ -156,6 +165,7 @@ pub fn Canvas() -> Html {
         global_pointer_down.clone(),
         shape_catalog.clone(),
         active_shape.clone(),
+        selection_box.clone(),
     );
 
     use_effect_with(camera.clone(), move |camera| {
@@ -169,7 +179,7 @@ pub fn Canvas() -> Html {
     html! {
         <div id="canvas" class="overflow-hidden top-0 left-0 relative w-screen h-screen" onpointerdown={pointer_down_callback} onpointermove={pointer_move_callback} onpointerup={pointer_up_callback}>
             <Toolbar current_tool={current_tool} client_position={*client_position} />
-            <InnerCanvas camera={camera} shapes={shape_catalog} />
+            <InnerCanvas camera={camera} shapes={shape_catalog} selection_box={selection_box}/>
         </div>
     }
 }

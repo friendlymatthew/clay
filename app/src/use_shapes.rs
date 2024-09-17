@@ -8,14 +8,21 @@ use yew::{classes, html, virtual_dom::VNode, Html, Reducible};
 use crate::{CameraState, EqRc};
 
 pub enum ShapeCatalogAction {
-    SelectShape(usize),
     UpsertShape {
         id: usize,
         position: Point2D,
         width_height: Point2D,
         selected: bool,
     },
+    UpsertSelectedShapes {
+        offset: Point2D,
+    },
+    SelectIntersecting {
+        selection_box: (Point2D, Point2D),
+    },
     UnselectAll,
+    UnselectExceptPoint(Point2D),
+    SaveSelectedIds,
 }
 
 #[derive(Debug, PartialEq)]
@@ -129,7 +136,63 @@ impl Reducible for ShapeCatalogState {
                     }
                 }
             }
-            _ => todo!(),
+            ShapeCatalogAction::UnselectExceptPoint(point) => {
+                let mut shapes_mut = shapes.borrow_mut();
+
+                for (_, s) in shapes_mut.iter_mut() {
+                    match s {
+                        Shape::Rectangle(r) => {
+                            if r.selected && !r.is_inside(point) {
+                                r.selected = false;
+                            }
+                        }
+                    }
+                }
+            }
+            ShapeCatalogAction::UpsertSelectedShapes { offset } => {
+                let mut shapes_mut = shapes.borrow_mut();
+
+                for (_, s) in shapes_mut.iter_mut() {
+                    match s {
+                        Shape::Rectangle(r) => {
+                            if r.selected {
+                                let temp_position = if let Some(tp) = r.temp_position {
+                                    tp
+                                } else {
+                                    r.position
+                                };
+
+                                r.position = temp_position + offset;
+                            }
+                        }
+                    }
+                }
+            }
+            ShapeCatalogAction::SelectIntersecting { selection_box } => {
+                let mut shapes_mut = shapes.borrow_mut();
+
+                for (_, s) in shapes_mut.iter_mut() {
+                    match s {
+                        Shape::Rectangle(r) => match r.intersects(selection_box) {
+                            true => r.selected = true,
+                            false => r.selected = false,
+                        },
+                    }
+                }
+            }
+            ShapeCatalogAction::SaveSelectedIds => {
+                let mut shapes_mut = shapes.borrow_mut();
+
+                for (_, s) in shapes_mut.iter_mut() {
+                    match s {
+                        Shape::Rectangle(r) => {
+                            if r.selected {
+                                r.temp_position = Some(r.position);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         ShapeCatalogState { shapes }.into()

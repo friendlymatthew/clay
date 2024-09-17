@@ -2,7 +2,6 @@ use crate::use_shapes::{ShapeCatalogAction, ShapeCatalogState};
 use crate::{CameraState, CameraStateAction};
 use editor::{get_box, Tool};
 use math::Point2D;
-use web_sys::console;
 use yew::{hook, Callback, PointerEvent, UseReducerHandle, UseStateHandle};
 
 #[hook]
@@ -14,20 +13,19 @@ pub fn use_pointer_down_callback(
     global_pointer_down: UseStateHandle<bool>,
     shape_catalog: UseReducerHandle<ShapeCatalogState>,
     active_shape: UseStateHandle<Option<usize>>,
+    selection_box: UseStateHandle<Option<(Point2D, Point2D)>>,
 ) -> Callback<PointerEvent> {
     let shape_catalog = shape_catalog.clone();
+    let selection_box = selection_box.clone();
     Callback::from({
         move |e: PointerEvent| {
             e.prevent_default();
 
-            let (x, y) = (e.client_x(), e.client_y());
-
-            let pointer_position = Point2D::new(x as f32, y as f32);
-
+            let (client_x, client_y) = (e.client_x(), e.client_y());
+            let pointer_position = Point2D::new(client_x as f32, client_y as f32);
+            let global_pointer_position = (*camera).convert_viewport_to_global(pointer_position);
             initial_drag.set(pointer_position);
             global_pointer_down.set(true);
-
-            console::log_1(&"pointer down".into());
 
             match current_tool {
                 Tool::Hand => temp_canvas_position.set((*camera).canvas_position()),
@@ -36,7 +34,12 @@ pub fn use_pointer_down_callback(
                     let next_id = (*shape_catalog).next_id();
                     active_shape.set(Some(next_id));
                 }
-                Tool::Select => {}
+                Tool::Select => {
+                    shape_catalog.dispatch(ShapeCatalogAction::UnselectExceptPoint(
+                        global_pointer_position,
+                    ));
+                    selection_box.set(Some((pointer_position, Point2D::new(0.0, 0.0))));
+                }
                 Tool::Text => {
                     shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);
                 }
@@ -56,6 +59,7 @@ pub fn use_pointer_move_callback(
     shape_catalog: UseReducerHandle<ShapeCatalogState>,
     active_shape: UseStateHandle<Option<usize>>,
     client_position: UseStateHandle<Option<(i32, i32)>>,
+    selection_box: UseStateHandle<Option<(Point2D, Point2D)>>,
 ) -> Callback<PointerEvent> {
     Callback::from({
         move |e: PointerEvent| {
@@ -74,10 +78,12 @@ pub fn use_pointer_move_callback(
 
                     let p1 = (*camera_state).convert_viewport_to_global(initial_drag);
                     let p2 = (*camera_state).convert_viewport_to_global(client_position);
+                    let offset = p2 - p1;
+
+                    let (box_position, box_width_height) = get_box(p1, p2);
 
                     match current_tool {
                         Tool::Hand => {
-                            let offset = p2 - p1;
                             camera.dispatch(CameraStateAction::MoveCamera {
                                 temp_canvas_position,
                                 offset,
@@ -85,19 +91,34 @@ pub fn use_pointer_move_callback(
                         }
                         Tool::Rect => {
                             if let Some(id) = *active_shape {
-                                let (position, width_height) = get_box(p1, p2);
-
                                 shape_catalog.dispatch(ShapeCatalogAction::UpsertShape {
                                     id,
-                                    position,
-                                    width_height,
+                                    position: box_position,
+                                    width_height: box_width_height,
                                     selected: false,
                                 });
                             } else {
                                 panic!("no active shape")
                             }
                         }
-                        Tool::Select => {}
+                        Tool::Select => {
+                            let selection_box = selection_box.clone();
+                            match *selection_box {
+                                Some((_, _)) => {
+                                    selection_box.set(Some((box_position, box_width_height)));
+                                    shape_catalog.dispatch(
+                                        ShapeCatalogAction::SelectIntersecting {
+                                            selection_box: ((box_position, box_width_height)),
+                                        },
+                                    );
+                                }
+                                None => {
+                                    shape_catalog.dispatch(
+                                        ShapeCatalogAction::UpsertSelectedShapes { offset },
+                                    );
+                                }
+                            };
+                        }
                         Tool::Text => {}
                         _ => todo!(),
                     }
@@ -115,6 +136,7 @@ pub fn use_pointer_up_callback(
     global_pointer_down: UseStateHandle<bool>,
     shape_catalog: UseReducerHandle<ShapeCatalogState>,
     active_shape: UseStateHandle<Option<usize>>,
+    selection_box: UseStateHandle<Option<(Point2D, Point2D)>>,
 ) -> Callback<PointerEvent> {
     Callback::from({
         move |e: PointerEvent| {
@@ -125,14 +147,15 @@ pub fn use_pointer_up_callback(
             match *current_tool {
                 Tool::Hand => temp_canvas_position.set((*camera).canvas_position()),
                 Tool::Rect | Tool::Circle | Tool::Line | Tool::Freehand => {
-                    let catalog = shape_catalog.clone();
-
-                    console::log_1(&format!("num items: {}", (*catalog).next_id()).into());
-
                     active_shape.set(None);
                     current_tool.set(Tool::Hand);
+
+                    shape_catalog.dispatch(ShapeCatalogAction::SaveSelectedIds);
                 }
-                Tool::Select => {}
+                Tool::Select => {
+                    selection_box.set(None);
+                    shape_catalog.dispatch(ShapeCatalogAction::SaveSelectedIds);
+                }
                 Tool::Text => {}
             }
         }
