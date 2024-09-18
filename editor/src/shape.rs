@@ -31,4 +31,10 @@ impl Rectangle {
         !((self.position + self.width_height).le_or(selection_box.0)
             || (selection_box.0 + selection_box.1).le_or(self.position))
     }
+
+    pub fn path(&self) -> String {
+        let (x, y) = self.position.coord();
+        let (w, h) = self.width_height.coord();
+        format!("M {x} {y} h {w} v {h} h -{w} Z")
+    }
 }
