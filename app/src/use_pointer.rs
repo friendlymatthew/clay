@@ -32,6 +32,12 @@ pub fn use_pointer_down_callback(
                 Tool::Rect => {
                     shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);
                     let next_id = (*shape_catalog).next_id();
+                    shape_catalog.dispatch(ShapeCatalogAction::UpsertShape {
+                        id: next_id,
+                        position: pointer_position,
+                        width_height: Point2D::new(0.0, 0.0),
+                        selected: false,
+                    });
                     active_shape.set(Some(next_id));
                 }
                 Tool::Select => {
@@ -151,7 +157,6 @@ pub fn use_pointer_up_callback(
                 Tool::Hand => temp_canvas_position.set((*camera).canvas_position()),
                 Tool::Rect | Tool::Circle | Tool::Line | Tool::Freehand => {
                     active_shape.set(None);
-                    current_tool.set(Tool::Hand);
 
                     shape_catalog.dispatch(ShapeCatalogAction::SaveSelectedIds);
                 }

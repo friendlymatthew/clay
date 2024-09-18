@@ -1,11 +1,11 @@
-use std::{cell::RefCell, collections::BTreeMap};
+use std::collections::BTreeMap;
 
 use editor::{Rectangle, Shape};
 use math::Point2D;
 use web_sys::console;
 use yew::{classes, html, virtual_dom::VNode, Html, Reducible};
 
-use crate::{CameraState, EqRc};
+use crate::CameraState;
 
 pub enum ShapeCatalogAction {
     UpsertShape {
@@ -25,19 +25,18 @@ pub enum ShapeCatalogAction {
     SaveSelectedIds,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ShapeCatalogState {
-    shapes: EqRc<RefCell<BTreeMap<usize, Shape>>>,
+    shapes: BTreeMap<usize, Shape>,
 }
 
 impl ShapeCatalogState {
     pub fn next_id(&self) -> usize {
-        self.shapes.borrow().len()
+        self.shapes.len()
     }
 
     pub fn selected(&self) -> Vec<usize> {
         self.shapes
-            .borrow()
             .iter()
             .filter(|(_, s)| match s {
                 Shape::Rectangle(r) => r.selected,
@@ -48,7 +47,6 @@ impl ShapeCatalogState {
 
     pub fn html(&self, camera: &CameraState) -> VNode {
         self.shapes
-            .borrow()
             .iter()
             .map(|(k, s)| {
                 let k = format!("{k}");
@@ -106,7 +104,7 @@ impl ShapeCatalogState {
 impl Default for ShapeCatalogState {
     fn default() -> Self {
         Self {
-            shapes: EqRc::new(RefCell::new(BTreeMap::new())),
+            shapes: BTreeMap::new(),
         }
     }
 }
@@ -115,8 +113,7 @@ impl Reducible for ShapeCatalogState {
     type Action = ShapeCatalogAction;
 
     fn reduce(self: std::rc::Rc<Self>, action: Self::Action) -> std::rc::Rc<Self> {
-        let shapes = self.shapes.clone();
-
+        let mut shapes = self.shapes.clone();
         match action {
             ShapeCatalogAction::UpsertShape {
                 id,
@@ -124,9 +121,7 @@ impl Reducible for ShapeCatalogState {
                 width_height,
                 selected,
             } => {
-                let mut shapes_mut = shapes.borrow_mut(); // Mutably borrow once
-
-                if let Some(shape) = shapes_mut.get_mut(&id) {
+                if let Some(shape) = shapes.get_mut(&id) {
                     match shape {
                         Shape::Rectangle(rectangle) => {
                             // Update the existing shape
@@ -138,23 +133,19 @@ impl Reducible for ShapeCatalogState {
                 } else {
                     // Insert a new shape if not found
                     let rectangle = Rectangle::new(position, width_height, selected);
-                    shapes_mut.insert(id, Shape::Rectangle(rectangle));
+                    shapes.insert(id, Shape::Rectangle(rectangle));
                 }
             }
             ShapeCatalogAction::UnselectAll => {
-                let mut shapes_mut = shapes.borrow_mut(); // Mutably borrow once
-
                 // Iterate and unselect all shapes
-                for (_, s) in shapes_mut.iter_mut() {
+                for (_, s) in shapes.iter_mut() {
                     match s {
                         Shape::Rectangle(r) => r.selected = false,
                     }
                 }
             }
             ShapeCatalogAction::UnselectExceptPoint(point) => {
-                let mut shapes_mut = shapes.borrow_mut();
-
-                for (_, s) in shapes_mut.iter_mut() {
+                for (_, s) in shapes.iter_mut() {
                     match s {
                         Shape::Rectangle(r) => {
                             if !r.is_inside(point) {
@@ -165,9 +156,7 @@ impl Reducible for ShapeCatalogState {
                 }
             }
             ShapeCatalogAction::UpsertSelectedShapes { offset } => {
-                let mut shapes_mut = shapes.borrow_mut();
-
-                for (_, s) in shapes_mut.iter_mut() {
+                for (_, s) in shapes.iter_mut() {
                     match s {
                         Shape::Rectangle(r) => {
                             if r.selected {
@@ -184,9 +173,7 @@ impl Reducible for ShapeCatalogState {
                 }
             }
             ShapeCatalogAction::SelectIntersecting { selection_box } => {
-                let mut shapes_mut = shapes.borrow_mut();
-
-                for (_, s) in shapes_mut.iter_mut() {
+                for (_, s) in shapes.iter_mut() {
                     match s {
                         Shape::Rectangle(r) => match r.intersects(selection_box) {
                             true => r.selected = true,
@@ -196,9 +183,7 @@ impl Reducible for ShapeCatalogState {
                 }
             }
             ShapeCatalogAction::SaveSelectedIds => {
-                let mut shapes_mut = shapes.borrow_mut();
-
-                for (_, s) in shapes_mut.iter_mut() {
+                for (_, s) in shapes.iter_mut() {
                     match s {
                         Shape::Rectangle(r) => {
                             if r.selected {

@@ -1,11 +1,11 @@
 use math::Point2D;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Shape {
     Rectangle(Rectangle),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Rectangle {
     pub position: Point2D,
     pub width_height: Point2D,

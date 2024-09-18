@@ -4,10 +4,7 @@ This crate aims to provide a interactive design tool as a functional Yew compone
 
 `clay` heavily relies on wasm32 SIMD intrinsics. Since this problem space is bound to planar and spatial operations, this crate aims to implement every geometric operation in SIMD.
 
-## Status
-`clay` is buggy but functional. `clay` can draw rectangles and move in infinite directions. 
-
-The most immediate tasks are to implement selecting, zooming, and rendering text. There isn't a clear roadmap but most exciting ideas are persisting shapes to disk, writing freehand, simple multicollaboration, and drawing circles.
+The most immediate task is to implement zooming. There isn't a clear roadmap but most exciting ideas are persisting shapes to disk, writing freehand, simple multicollaboration, and drawing circles.
 
 ## How to Run
 > *These instructions make use of `just`. To install, simply `cargo install just`*
