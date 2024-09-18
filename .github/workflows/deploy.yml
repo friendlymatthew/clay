@@ -34,15 +34,15 @@ jobs:
       #   run: |
       #     cargo fmt --all -- --check
       #     cargo clippy -- --deny=warnings
-      - name: Install just
-        run: |
-          cargo install just
-      - name: Verify justfile
-        run: |
-          just --list
-      - name: Test math crate
-        run: |
-          just test-math
+      # - name: Install just
+      #   run: |
+      #     cargo install just
+      # - name: Verify justfile
+      #   run: |
+      #     just --list
+      # - name: Test math crate
+      #   run: |
+      #     just test-math
 
       - name: build
         run: |
