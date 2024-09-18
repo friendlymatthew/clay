@@ -1,4 +1,7 @@
-use gloo::{events::EventListener, utils::document};
+use gloo::{
+    events::{EventListener, EventListenerOptions},
+    utils::document,
+};
 use web_sys::{console, wasm_bindgen::JsCast};
 use yew::prelude::*;
 
@@ -8,7 +11,7 @@ use math::Point2D;
 use crate::{
     components::{InnerCanvas, Toolbar},
     use_pointer_down_callback, use_pointer_move_callback, use_pointer_up_callback,
-    use_shapes::ShapeCatalogState,
+    use_shapes::{ShapeCatalogAction, ShapeCatalogState},
     CameraState, CameraStateAction,
 };
 
@@ -34,58 +37,6 @@ pub fn Canvas() -> Html {
     let current_tool = use_state(|| Tool::Select);
     let camera = use_reducer(|| CameraState::default());
 
-    use_effect({
-        let camera = camera.clone();
-        let current_tool = current_tool.clone();
-        move || {
-            let keydown_listener = EventListener::new(&document(), "keydown", move |e| {
-                e.prevent_default();
-
-                let e = e
-                    .clone()
-                    .dyn_into::<KeyboardEvent>()
-                    .expect("failed to cast as KeyboardEvent");
-
-                let offset_single_unit = 8.0;
-
-                let camera_state = camera.clone();
-
-                let event_key = e.key();
-
-                // arrow keys
-                if let Some((dx, dy)) = match event_key.as_str() {
-                    "ArrowDown" => Some((0.0, offset_single_unit)),
-                    "ArrowUp" => Some((0.0, -offset_single_unit)),
-                    "ArrowLeft" => Some((-offset_single_unit, 0.0)),
-                    "ArrowRight" => Some((offset_single_unit, 0.0)),
-                    _ => None,
-                } {
-                    current_tool.set(Tool::Hand);
-
-                    camera.dispatch(CameraStateAction::MoveCamera {
-                        temp_canvas_position: (*camera_state).canvas_position(),
-                        offset: Point2D::new(dx, dy),
-                    })
-                }
-
-                if let Some(tool) = match event_key.as_str() {
-                    "h" => Some(Tool::Hand),
-                    "s" => Some(Tool::Select),
-                    "t" => Some(Tool::Text),
-                    "r" => Some(Tool::Rect),
-                    // "c" => Some(Tool::Circle),
-                    // "l" => Some(Tool::Line),
-                    // "f" => Some(Tool::Freehand),
-                    _ => None,
-                } {
-                    current_tool.set(tool);
-                }
-            });
-
-            move || drop(keydown_listener)
-        }
-    });
-
     let global_pointer_down = use_state(|| false);
 
     // hand tool
@@ -100,6 +51,68 @@ pub fn Canvas() -> Html {
     let selection_box = use_state(|| None);
 
     let client_position: UseStateHandle<Option<(i32, i32)>> = use_state(|| None);
+
+    use_effect({
+        let camera = camera.clone();
+        let current_tool = current_tool.clone();
+        let shape_catalog = shape_catalog.clone();
+        move || {
+            let keydown_listener = EventListener::new_with_options(
+                &document(),
+                "keydown",
+                EventListenerOptions::enable_prevent_default(),
+                move |e| {
+                    e.prevent_default();
+
+                    let e = e
+                        .clone()
+                        .dyn_into::<KeyboardEvent>()
+                        .expect("failed to cast as KeyboardEvent");
+
+                    let offset_single_unit = 8.0;
+
+                    let camera_state = camera.clone();
+
+                    let event_key = e.key();
+
+                    // arrow keys
+                    if let Some((dx, dy)) = match event_key.as_str() {
+                        "ArrowDown" => Some((0.0, offset_single_unit)),
+                        "ArrowUp" => Some((0.0, -offset_single_unit)),
+                        "ArrowLeft" => Some((-offset_single_unit, 0.0)),
+                        "ArrowRight" => Some((offset_single_unit, 0.0)),
+                        _ => None,
+                    } {
+                        current_tool.set(Tool::Hand);
+
+                        camera.dispatch(CameraStateAction::MoveCamera {
+                            temp_canvas_position: (*camera_state).canvas_position(),
+                            offset: Point2D::new(dx, dy),
+                        })
+                    }
+
+                    if let Some(tool) = match event_key.as_str() {
+                        "h" => Some(Tool::Hand),
+                        "s" => Some(Tool::Select),
+                        "t" => Some(Tool::Text),
+                        "r" => Some(Tool::Rect),
+                        // "c" => Some(Tool::Circle),
+                        // "l" => Some(Tool::Line),
+                        // "f" => Some(Tool::Freehand),
+                        _ => None,
+                    } {
+                        current_tool.set(tool);
+                    }
+
+                    if "Escape" == event_key.as_str() {
+                        shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);
+                    }
+                },
+            );
+
+            move || drop(keydown_listener)
+        }
+    });
 
     use_effect_with(*current_tool, {
         move |tool| {

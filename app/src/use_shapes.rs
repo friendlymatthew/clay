@@ -75,7 +75,11 @@ impl ShapeCatalogState {
                             format!("stroke-width-1")
                         };
 
-                        let fill = "fill-orange-300";
+                        let fill = if selected {
+                            "fill-green-300"
+                        } else {
+                            "fill-orange-300"
+                        };
                         let class = classes!(stroke, stroke_w, fill);
 
                         html! {
