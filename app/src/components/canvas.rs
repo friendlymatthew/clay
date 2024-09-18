@@ -104,8 +104,12 @@ pub fn Canvas() -> Html {
                         current_tool.set(tool);
                     }
 
-                    if "Escape" == event_key.as_str() {
-                        shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);
+                    match event_key.as_str() {
+                        "Escape" => shape_catalog.dispatch(ShapeCatalogAction::UnselectAll),
+                        "a" => shape_catalog.dispatch(ShapeCatalogAction::SelectAll),
+                        "z" => shape_catalog.dispatch(ShapeCatalogAction::DeletePrevious),
+                        "Backspace" => shape_catalog.dispatch(ShapeCatalogAction::DeleteSelected),
+                        _ => {}
                     }
                 },
             );

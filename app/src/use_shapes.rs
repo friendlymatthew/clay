@@ -1,8 +1,7 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use editor::{Rectangle, Shape};
 use math::Point2D;
-use web_sys::console;
 use yew::{classes, html, virtual_dom::VNode, Html, Reducible};
 
 use crate::CameraState;
@@ -20,7 +19,10 @@ pub enum ShapeCatalogAction {
     SelectIntersecting {
         selection_box: (Point2D, Point2D),
     },
+    SelectAll,
     UnselectAll,
+    DeleteSelected,
+    DeletePrevious,
     UnselectExceptPoint(Point2D),
     SaveSelectedIds,
 }
@@ -53,24 +55,9 @@ impl ShapeCatalogState {
 
                 match s {
                     Shape::Rectangle(r) => {
-                        let &Rectangle {
-                            position,
-                            width_height,
-                            selected,
-                            ..
-                        } = r;
+                        let path = r.path();
 
-                        let (sx, sy) = position.coord();
-                        let (sw, sh) = width_height.coord();
-
-                        console::log_1(
-                            &format!("RERENDER shape\nx: {}, y: {}, w: {}, h: {}", sx, sy, sw, sh)
-                                .into(),
-                        );
-
-                        let path = format!("M {sx} {sy} h {sw} v {sh} h -{sw} Z");
-
-                        let stroke = if selected {
+                        let stroke = if r.selected {
                             "stroke-blue-800"
                         } else {
                             "stroke-black"
@@ -78,13 +65,13 @@ impl ShapeCatalogState {
 
                         let z = camera.zoom();
 
-                        let stroke_w = if selected {
+                        let stroke_w = if r.selected {
                             format!("stroke-width-[{}px]", 2 as f32 / z)
                         } else {
                             format!("stroke-width-1")
                         };
 
-                        let fill = if selected {
+                        let fill = if r.selected {
                             "fill-green-300"
                         } else {
                             "fill-orange-300"
@@ -145,11 +132,42 @@ impl Reducible for ShapeCatalogState {
                 }
             }
             ShapeCatalogAction::UnselectExceptPoint(point) => {
-                for (_, s) in shapes.iter_mut() {
+                // new_selection is a flag to check whether there is a new selection box.
+                // if a new selection box is created, first unselect all selected shapes.
+                let mut new_selection = BTreeSet::new();
+                let mut not_inside_any_shapes = true;
+                for (shape_id, s) in shapes.iter_mut() {
                     match s {
                         Shape::Rectangle(r) => {
-                            if !r.is_inside(point) {
-                                r.selected = false;
+                            if r.is_inside(point) {
+                                if !r.selected {
+                                    r.selected = true;
+                                    new_selection.insert(*shape_id);
+                                }
+
+                                not_inside_any_shapes = false;
+                            }
+                        }
+                    }
+                }
+
+                if not_inside_any_shapes {
+                    for (_, s) in shapes.iter_mut() {
+                        match s {
+                            Shape::Rectangle(r) => r.selected = false,
+                        }
+                    }
+                }
+
+                if !new_selection.is_empty() {
+                    for (shape_id, s) in shapes.iter_mut() {
+                        match s {
+                            Shape::Rectangle(r) => {
+                                if new_selection.contains(shape_id) {
+                                    r.selected = true;
+                                } else {
+                                    r.selected = false;
+                                }
                             }
                         }
                     }
@@ -193,6 +211,21 @@ impl Reducible for ShapeCatalogState {
                     }
                 }
             }
+            ShapeCatalogAction::SelectAll => {
+                for (_, s) in shapes.iter_mut() {
+                    match s {
+                        Shape::Rectangle(r) => {
+                            r.selected = true;
+                        }
+                    }
+                }
+            }
+            ShapeCatalogAction::DeleteSelected => {
+                shapes.retain(|_, s| match s {
+                    Shape::Rectangle(r) => !r.selected,
+                });
+            }
+            ShapeCatalogAction::DeletePrevious => {}
         }
 
         ShapeCatalogState { shapes }.into()
