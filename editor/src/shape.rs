@@ -28,7 +28,7 @@ impl Rectangle {
     }
 
     pub fn intersects(&self, selection_box: (Point2D, Point2D)) -> bool {
-        !(self.position + self.width_height < selection_box.0
-            || self.position > selection_box.0 + selection_box.1)
+        !((self.position + self.width_height).le_or(selection_box.0)
+            || (selection_box.0 + selection_box.1).le_or(self.position))
     }
 }

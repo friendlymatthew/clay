@@ -38,7 +38,10 @@ pub fn use_pointer_down_callback(
                     shape_catalog.dispatch(ShapeCatalogAction::UnselectExceptPoint(
                         global_pointer_position,
                     ));
-                    selection_box.set(Some((pointer_position, Point2D::new(0.0, 0.0))));
+
+                    if shape_catalog.selected().is_empty() {
+                        selection_box.set(Some((pointer_position, Point2D::new(0.0, 0.0))));
+                    }
                 }
                 Tool::Text => {
                     shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);

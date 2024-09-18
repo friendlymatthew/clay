@@ -35,6 +35,17 @@ impl ShapeCatalogState {
         self.shapes.borrow().len()
     }
 
+    pub fn selected(&self) -> Vec<usize> {
+        self.shapes
+            .borrow()
+            .iter()
+            .filter(|(_, s)| match s {
+                Shape::Rectangle(r) => r.selected,
+            })
+            .map(|(&id, _)| id)
+            .collect::<Vec<_>>()
+    }
+
     pub fn html(&self, camera: &CameraState) -> VNode {
         self.shapes
             .borrow()
@@ -146,7 +157,7 @@ impl Reducible for ShapeCatalogState {
                 for (_, s) in shapes_mut.iter_mut() {
                     match s {
                         Shape::Rectangle(r) => {
-                            if r.selected && !r.is_inside(point) {
+                            if !r.is_inside(point) {
                                 r.selected = false;
                             }
                         }

@@ -126,6 +126,13 @@ macro_rules! impl_math {
             }
 
             #[inline(always)]
+            pub fn le_or(self, other: $ty) -> bool {
+                let res = f32x4_le(self.0, other.0);
+
+                i32x4_extract_lane::<0>(res) | i32x4_extract_lane::<1>(res) == -1
+            }
+
+            #[inline(always)]
             pub fn one(self) -> f32 {
                 f32x4_extract_lane::<0>(self.0)
             }
