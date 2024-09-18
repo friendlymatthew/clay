@@ -14,9 +14,7 @@ impl Point3D {
             panic!("z cannot be invalid");
         }
 
-        let new = Self(f32x4(x, y, z, 0.0));
-
-        new
+        Self(f32x4(x, y, z, 0.0))
     }
 
     pub fn coord(self) -> (f32, f32, f32) {
