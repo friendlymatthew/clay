@@ -162,13 +162,7 @@ impl Reducible for ShapeCatalogState {
                 if !new_selection.is_empty() {
                     for (shape_id, s) in shapes.iter_mut() {
                         match s {
-                            Shape::Rectangle(r) => {
-                                if new_selection.contains(shape_id) {
-                                    r.selected = true;
-                                } else {
-                                    r.selected = false;
-                                }
-                            }
+                            Shape::Rectangle(r) => r.selected = new_selection.contains(shape_id),
                         }
                     }
                 }
