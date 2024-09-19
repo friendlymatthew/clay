@@ -55,7 +55,6 @@ jobs:
         with:
           branch: preview-${{ github.event.pull_request.number }}
           folder: app/dist
-          clean: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy to main
