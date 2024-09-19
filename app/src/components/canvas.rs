@@ -6,7 +6,7 @@ use web_sys::{console, wasm_bindgen::JsCast};
 use yew::prelude::*;
 
 use editor::Tool;
-use math::Point2D;
+use math::CanvasPoint;
 
 use crate::{
     components::{InnerCanvas, Toolbar},
@@ -40,8 +40,8 @@ pub fn Canvas() -> Html {
     let global_pointer_down = use_state(|| false);
 
     // hand tool
-    let initial_drag = use_state(|| Point2D::new(0.0, 0.0));
-    let temp_canvas_position = use_state(|| Point2D::new(0.0, 0.0));
+    let initial_drag = use_state(|| CanvasPoint::new(0.0, 0.0));
+    let temp_canvas_position = use_state(|| CanvasPoint::new(0.0, 0.0));
 
     // draw tool
     let shape_catalog = use_reducer(|| ShapeCatalogState::default());
@@ -87,7 +87,7 @@ pub fn Canvas() -> Html {
 
                         camera.dispatch(CameraStateAction::MoveCamera {
                             temp_canvas_position: (*camera_state).canvas_position(),
-                            offset: Point2D::new(dx, dy),
+                            offset: CanvasPoint::new(dx, dy),
                         })
                     }
 

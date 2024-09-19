@@ -1,19 +1,19 @@
 use crate::use_shapes::{ShapeCatalogAction, ShapeCatalogState};
 use crate::{CameraState, CameraStateAction};
 use editor::{get_box, Tool};
-use math::Point2D;
+use math::CanvasPoint;
 use yew::{hook, Callback, PointerEvent, UseReducerHandle, UseStateHandle};
 
 #[hook]
 pub fn use_pointer_down_callback(
     current_tool: Tool,
     camera: UseReducerHandle<CameraState>,
-    initial_drag: UseStateHandle<Point2D>,
-    temp_canvas_position: UseStateHandle<Point2D>,
+    initial_drag: UseStateHandle<CanvasPoint>,
+    temp_canvas_position: UseStateHandle<CanvasPoint>,
     global_pointer_down: UseStateHandle<bool>,
     shape_catalog: UseReducerHandle<ShapeCatalogState>,
     active_shape: UseStateHandle<Option<usize>>,
-    selection_box: UseStateHandle<Option<(Point2D, Point2D)>>,
+    selection_box: UseStateHandle<Option<(CanvasPoint, CanvasPoint)>>,
 ) -> Callback<PointerEvent> {
     let shape_catalog = shape_catalog.clone();
     let selection_box = selection_box.clone();
@@ -22,7 +22,7 @@ pub fn use_pointer_down_callback(
             e.prevent_default();
 
             let (client_x, client_y) = (e.client_x(), e.client_y());
-            let pointer_position = Point2D::new(client_x as f32, client_y as f32);
+            let pointer_position = CanvasPoint::new(client_x as f32, client_y as f32);
             let global_pointer_position = (*camera).convert_viewport_to_global(pointer_position);
             initial_drag.set(pointer_position);
             global_pointer_down.set(true);
@@ -35,7 +35,7 @@ pub fn use_pointer_down_callback(
                     shape_catalog.dispatch(ShapeCatalogAction::UpsertShape {
                         id: next_id,
                         position: pointer_position,
-                        width_height: Point2D::new(0.0, 0.0),
+                        width_height: CanvasPoint::new(0.0, 0.0),
                         selected: false,
                     });
                     active_shape.set(Some(next_id));
@@ -46,7 +46,7 @@ pub fn use_pointer_down_callback(
                     ));
 
                     if shape_catalog.selected().is_empty() {
-                        selection_box.set(Some((pointer_position, Point2D::new(0.0, 0.0))));
+                        selection_box.set(Some((pointer_position, CanvasPoint::new(0.0, 0.0))));
                     }
                 }
                 Tool::Text => {
@@ -62,13 +62,13 @@ pub fn use_pointer_down_callback(
 pub fn use_pointer_move_callback(
     current_tool: Tool,
     global_pointer_down: UseStateHandle<bool>,
-    initial_drag: Point2D,
-    temp_canvas_position: Point2D,
+    initial_drag: CanvasPoint,
+    temp_canvas_position: CanvasPoint,
     camera: UseReducerHandle<CameraState>,
     shape_catalog: UseReducerHandle<ShapeCatalogState>,
     active_shape: UseStateHandle<Option<usize>>,
     client_position: UseStateHandle<Option<(i32, i32)>>,
-    selection_box: UseStateHandle<Option<(Point2D, Point2D)>>,
+    selection_box: UseStateHandle<Option<(CanvasPoint, CanvasPoint)>>,
 ) -> Callback<PointerEvent> {
     Callback::from({
         move |e: PointerEvent| {
@@ -81,7 +81,7 @@ pub fn use_pointer_move_callback(
             match *global_pointer_down {
                 false => {}
                 true => {
-                    let client_position = Point2D::new(client_x as f32, client_y as f32);
+                    let client_position = CanvasPoint::new(client_x as f32, client_y as f32);
 
                     let camera_state = camera.clone();
 
@@ -141,11 +141,11 @@ pub fn use_pointer_move_callback(
 pub fn use_pointer_up_callback(
     current_tool: UseStateHandle<Tool>,
     camera: UseReducerHandle<CameraState>,
-    temp_canvas_position: UseStateHandle<Point2D>,
+    temp_canvas_position: UseStateHandle<CanvasPoint>,
     global_pointer_down: UseStateHandle<bool>,
     shape_catalog: UseReducerHandle<ShapeCatalogState>,
     active_shape: UseStateHandle<Option<usize>>,
-    selection_box: UseStateHandle<Option<(Point2D, Point2D)>>,
+    selection_box: UseStateHandle<Option<(CanvasPoint, CanvasPoint)>>,
 ) -> Callback<PointerEvent> {
     Callback::from({
         move |e: PointerEvent| {

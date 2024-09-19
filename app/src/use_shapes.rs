@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use editor::{Rectangle, Shape};
-use math::Point2D;
+use math::CanvasPoint;
 use yew::{classes, html, virtual_dom::VNode, Html, Reducible};
 
 use crate::CameraState;
@@ -9,21 +9,21 @@ use crate::CameraState;
 pub enum ShapeCatalogAction {
     UpsertShape {
         id: usize,
-        position: Point2D,
-        width_height: Point2D,
+        position: CanvasPoint,
+        width_height: CanvasPoint,
         selected: bool,
     },
     UpsertSelectedShapes {
-        offset: Point2D,
+        offset: CanvasPoint,
     },
     SelectIntersecting {
-        selection_box: (Point2D, Point2D),
+        selection_box: (CanvasPoint, CanvasPoint),
     },
     SelectAll,
     UnselectAll,
     DeleteSelected,
     DeletePrevious,
-    UnselectExceptPoint(Point2D),
+    UnselectExceptPoint(CanvasPoint),
     SaveSelectedIds,
 }
 

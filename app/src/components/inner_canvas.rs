@@ -1,5 +1,5 @@
 use gloo::utils::document;
-use math::Point2D;
+use math::CanvasPoint;
 use yew::prelude::*;
 
 use crate::{use_shapes::ShapeCatalogState, CameraState};
@@ -8,7 +8,7 @@ use crate::{use_shapes::ShapeCatalogState, CameraState};
 pub struct InnerCanvasProps {
     pub camera: UseReducerHandle<CameraState>,
     pub shapes: UseReducerHandle<ShapeCatalogState>,
-    pub selection_box: UseStateHandle<Option<(Point2D, Point2D)>>,
+    pub selection_box: UseStateHandle<Option<(CanvasPoint, CanvasPoint)>>,
 }
 
 #[function_component]

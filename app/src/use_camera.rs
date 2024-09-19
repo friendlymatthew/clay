@@ -1,17 +1,17 @@
-use math::Point2D;
+use math::CanvasPoint;
 use yew::Reducible;
 
 pub enum CameraStateAction {
     Refresh,
     MoveCamera {
-        temp_canvas_position: Point2D,
-        offset: Point2D,
+        temp_canvas_position: CanvasPoint,
+        offset: CanvasPoint,
     },
 }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct CameraState {
-    canvas_position: Point2D,
+    canvas_position: CanvasPoint,
     zoom: f32,
 }
 
@@ -22,7 +22,7 @@ impl CameraState {
         (x, y, self.zoom)
     }
 
-    pub fn canvas_position(&self) -> Point2D {
+    pub fn canvas_position(&self) -> CanvasPoint {
         self.canvas_position
     }
 
@@ -39,27 +39,27 @@ impl CameraState {
         self.zoom
     }
 
-    pub fn convert_viewport_to_global(&self, other: Point2D) -> Point2D {
+    pub fn convert_viewport_to_global(&self, other: CanvasPoint) -> CanvasPoint {
         if self.zoom_invalid() {
             panic!("zoom is in an invalid state before converting viewport to global");
         }
 
-        other / Point2D::new(self.zoom, self.zoom) - self.canvas_position
+        other / CanvasPoint::new(self.zoom, self.zoom) - self.canvas_position
     }
 
-    pub fn convert_global_to_viewport(&self, other: Point2D) -> Point2D {
+    pub fn convert_global_to_viewport(&self, other: CanvasPoint) -> CanvasPoint {
         if self.zoom_invalid() {
             panic!("zoom is in an invalid state");
         }
 
-        (other + self.canvas_position) * Point2D::new(self.zoom, self.zoom)
+        (other + self.canvas_position) * CanvasPoint::new(self.zoom, self.zoom)
     }
 }
 
 impl Default for CameraState {
     fn default() -> Self {
         Self {
-            canvas_position: Point2D::new(0.0, 0.0),
+            canvas_position: CanvasPoint::new(0.0, 0.0),
             zoom: 1.0,
         }
     }
