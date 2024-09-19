@@ -56,8 +56,7 @@ jobs:
           branch: preview-${{ github.event.pull_request.number }}
           folder: app/dist
           clean: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy to main
         if: github.ref == 'refs/heads/main'
@@ -66,5 +65,4 @@ jobs:
           branch: main
           folder: app/dist
           clean: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_KEY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
