@@ -5,7 +5,7 @@ use app::components::Canvas;
 
 #[derive(Clone, Routable, PartialEq)]
 enum Route {
-    #[at("/")]
+    #[at("/clay")]
     Home,
 }
 
