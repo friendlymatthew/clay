@@ -16,8 +16,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-      - name: Install Rust
-        run: rustup target add wasm32-unknown-unknown
+      - name: Install Nightly Rust
+        run: |
+          rustup toolchain install nightly
+          rustup default nightly
+      - name: Install wasm32-unknown-unknown
+        run: rustup target add wasm32-unknown-unknown --toolchain nightly
       - name: Install wasm-bindgen-cli
         run: cargo install wasm-bindgen-cli
       - name: Install just
