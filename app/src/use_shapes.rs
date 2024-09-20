@@ -49,7 +49,7 @@ impl ShapeCatalogState {
             .map(|(&id, _)| id)
     }
 
-    pub fn html(&self, camera: &CameraState, tool: &Tool) -> VNode {
+    pub fn html(&self, tool: &Tool) -> VNode {
         self.shapes
             .iter()
             .map(|(k, s)| {
@@ -83,32 +83,11 @@ impl ShapeCatalogState {
                     Shape::Rectangle(r) => {
                         let path = r.path();
 
-                        let stroke = if r.selected {
-                            "stroke-blue-800"
+                        let class = if r.selected {
+                            "stroke-blue-800 stroke-1 fill-green-300"
                         } else {
-                            "stroke-black"
+                            "stroke-black stroke-1 fill-orange-300"
                         };
-
-                        let z = camera.zoom();
-
-                        let stroke_w = if r.selected {
-                            format!("stroke-[{}px]", 2 as f32 / z)
-                        } else {
-                            format!("stroke-1")
-                        };
-
-                        let fill = if r.selected {
-                            "fill-green-300"
-                        } else {
-                            "fill-orange-300"
-                        };
-
-                        let state_tool = match tool {
-                            Tool::Select => "hover:fill-green-300 hover:stroke-blue-800",
-                            _ => "",
-                        };
-
-                        let class = classes!(stroke, stroke_w, fill, state_tool);
 
                         html! {
                             <path key={k} d={path} class={class}/>

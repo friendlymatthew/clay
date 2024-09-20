@@ -60,8 +60,6 @@ pub fn InnerCanvas(props: &InnerCanvasProps) -> Html {
         }
     });
 
-    let camera_state = props.camera.clone();
-
     html! {
         <svg class="fixed w-screen h-screen">
             <defs>
@@ -70,7 +68,7 @@ pub fn InnerCanvas(props: &InnerCanvasProps) -> Html {
                 <circle id="circle" cx="200" cy="200" r="50" />
             </defs>
             <g id="group">
-                {(*props.shapes).html(&*camera_state, &props.current_tool)}
+                {(*props.shapes).html(&props.current_tool)}
                 <path id="selected" />
             </g>
         </svg>
