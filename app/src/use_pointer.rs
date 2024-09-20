@@ -46,7 +46,7 @@ pub fn use_pointer_down_callback(
                         global_pointer_position,
                     ));
 
-                    if shape_catalog.selected().is_empty() {
+                    if shape_catalog.any_selected() {
                         selection_box.set(Some((pointer_position, CanvasPoint::new(0.0, 0.0))));
                     }
                 }
