@@ -37,14 +37,13 @@ impl ShapeCatalogState {
         self.shapes.len()
     }
 
-    pub fn selected(&self) -> Vec<u32> {
+    pub fn selected(&self) -> impl Iterator<Item = u32> + '_ {
         self.shapes
             .iter()
             .filter(|(_, s)| match s {
                 Shape::Rectangle(r) => r.selected,
             })
             .map(|(&id, _)| id)
-            .collect::<Vec<_>>()
     }
 
     pub fn html(&self, camera: &CameraState, tool: &Tool) -> VNode {
