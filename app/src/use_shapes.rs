@@ -8,7 +8,7 @@ use crate::CameraState;
 
 pub enum ShapeCatalogAction {
     UpsertShape {
-        id: usize,
+        id: u32,
         position: CanvasPoint,
         width_height: CanvasPoint,
         selected: bool,
@@ -29,7 +29,7 @@ pub enum ShapeCatalogAction {
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct ShapeCatalogState {
-    shapes: BTreeMap<usize, Shape>,
+    shapes: BTreeMap<u32, Shape>,
 }
 
 impl ShapeCatalogState {
@@ -37,7 +37,7 @@ impl ShapeCatalogState {
         self.shapes.len()
     }
 
-    pub fn selected(&self) -> Vec<usize> {
+    pub fn selected(&self) -> Vec<u32> {
         self.shapes
             .iter()
             .filter(|(_, s)| match s {

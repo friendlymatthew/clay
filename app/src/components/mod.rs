@@ -1,4 +1,4 @@
-pub use canvas::Canvas;
+pub use canvas::*;
 pub use inner_canvas::InnerCanvas;
 pub use toolbar::Toolbar;
 

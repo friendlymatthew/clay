@@ -1,3 +1,4 @@
+use crate::components::GUID_GENERATOR;
 use crate::use_shapes::{ShapeCatalogAction, ShapeCatalogState};
 use crate::{CameraState, CameraStateAction};
 use editor::{get_box, Tool};
@@ -12,7 +13,7 @@ pub fn use_pointer_down_callback(
     temp_canvas_position: UseStateHandle<CanvasPoint>,
     global_pointer_down: UseStateHandle<bool>,
     shape_catalog: UseReducerHandle<ShapeCatalogState>,
-    active_shape: UseStateHandle<Option<usize>>,
+    active_shape: UseStateHandle<Option<u32>>,
     selection_box: UseStateHandle<Option<(CanvasPoint, CanvasPoint)>>,
 ) -> Callback<PointerEvent> {
     let shape_catalog = shape_catalog.clone();
@@ -31,7 +32,7 @@ pub fn use_pointer_down_callback(
                 Tool::Hand => temp_canvas_position.set((*camera).canvas_position()),
                 Tool::Rect => {
                     shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);
-                    let next_id = (*shape_catalog).next_id();
+                    let next_id = GUID_GENERATOR.next_guid();
                     shape_catalog.dispatch(ShapeCatalogAction::UpsertShape {
                         id: next_id,
                         position: pointer_position,
@@ -66,7 +67,7 @@ pub fn use_pointer_move_callback(
     temp_canvas_position: CanvasPoint,
     camera: UseReducerHandle<CameraState>,
     shape_catalog: UseReducerHandle<ShapeCatalogState>,
-    active_shape: UseStateHandle<Option<usize>>,
+    active_shape: UseStateHandle<Option<u32>>,
     client_position: UseStateHandle<Option<(i32, i32)>>,
     selection_box: UseStateHandle<Option<(CanvasPoint, CanvasPoint)>>,
 ) -> Callback<PointerEvent> {
@@ -144,7 +145,7 @@ pub fn use_pointer_up_callback(
     temp_canvas_position: UseStateHandle<CanvasPoint>,
     global_pointer_down: UseStateHandle<bool>,
     shape_catalog: UseReducerHandle<ShapeCatalogState>,
-    active_shape: UseStateHandle<Option<usize>>,
+    active_shape: UseStateHandle<Option<u32>>,
     selection_box: UseStateHandle<Option<(CanvasPoint, CanvasPoint)>>,
 ) -> Callback<PointerEvent> {
     Callback::from({
