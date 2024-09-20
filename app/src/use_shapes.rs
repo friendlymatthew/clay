@@ -1,7 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use editor::{Rectangle, Shape, Tool};
+use editor::{Freehand, Rectangle, Shape, Tool};
 use math::CanvasPoint;
+use web_sys::console;
 use yew::{classes, html, virtual_dom::VNode, Html, Reducible};
 
 use crate::CameraState;
@@ -12,6 +13,7 @@ pub enum ShapeCatalogAction {
         position: CanvasPoint,
         width_height: CanvasPoint,
         selected: bool,
+        current_tool: Tool,
     },
     UpsertSelectedShapes {
         offset: CanvasPoint,
@@ -42,6 +44,7 @@ impl ShapeCatalogState {
             .iter()
             .filter(|(_, s)| match s {
                 Shape::Rectangle(r) => r.selected,
+                Shape::Freehand(f) => f.selected,
             })
             .map(|(&id, _)| id)
     }
@@ -53,6 +56,30 @@ impl ShapeCatalogState {
                 let k = format!("{k}");
 
                 match s {
+                    Shape::Freehand(f) => {
+                        console::log_1(&format!("num points {}", f.position.len()).into());
+                        let paths = f
+                            .position
+                            .iter()
+                            .enumerate()
+                            .map(|(i, c)| {
+                                let (x, y) = c.coord();
+                                let path = format!("M {x} {y} h 10.0 v 10.0 h -10.0 Z");
+
+                                let key = format!("{i}");
+
+                                html! {
+                                    <path key={key} path={path} class={"fill-black"} />
+                                }
+                            })
+                            .collect::<Html>();
+
+                        html! {
+                            <g key={k}>
+                                {paths}
+                            </g>
+                        }
+                    }
                     Shape::Rectangle(r) => {
                         let path = r.path();
 
@@ -112,6 +139,7 @@ impl Reducible for ShapeCatalogState {
                 position,
                 width_height,
                 selected,
+                current_tool,
             } => {
                 if let Some(shape) = shapes.get_mut(&id) {
                     match shape {
@@ -121,11 +149,25 @@ impl Reducible for ShapeCatalogState {
                             rectangle.width_height = width_height;
                             rectangle.selected = selected;
                         }
+                        Shape::Freehand(f) => {
+                            // freehand collects a bunch of small rectangles
+                            // to update a Freehand shape means to add more points
+                            f.update(position, selected);
+                        }
                     }
                 } else {
-                    // Insert a new shape if not found
-                    let rectangle = Rectangle::new(position, width_height, selected);
-                    shapes.insert(id, Shape::Rectangle(rectangle));
+                    match current_tool {
+                        Tool::Rect => {
+                            // Insert a new shape if not found
+                            let rectangle = Rectangle::new(position, width_height, selected);
+                            shapes.insert(id, Shape::Rectangle(rectangle));
+                        }
+                        Tool::Freehand => {
+                            let f = Freehand::new(position, selected);
+                            shapes.insert(id, Shape::Freehand(f));
+                        }
+                        _ => panic!("no other shapes exist"),
+                    }
                 }
             }
             ShapeCatalogAction::UnselectAll => {
@@ -133,6 +175,7 @@ impl Reducible for ShapeCatalogState {
                 for (_, s) in shapes.iter_mut() {
                     match s {
                         Shape::Rectangle(r) => r.selected = false,
+                        Shape::Freehand(f) => f.selected = false,
                     }
                 }
             }
@@ -153,6 +196,9 @@ impl Reducible for ShapeCatalogState {
                                 not_inside_any_shapes = false;
                             }
                         }
+                        Shape::Freehand(_f) => {
+                            todo!();
+                        }
                     }
                 }
 
@@ -160,6 +206,7 @@ impl Reducible for ShapeCatalogState {
                     for (_, s) in shapes.iter_mut() {
                         match s {
                             Shape::Rectangle(r) => r.selected = false,
+                            Shape::Freehand(f) => f.selected = false,
                         }
                     }
                 }
@@ -168,6 +215,7 @@ impl Reducible for ShapeCatalogState {
                     for (shape_id, s) in shapes.iter_mut() {
                         match s {
                             Shape::Rectangle(r) => r.selected = new_selection.contains(shape_id),
+                            Shape::Freehand(_f) => todo!(),
                         }
                     }
                 }
@@ -186,6 +234,9 @@ impl Reducible for ShapeCatalogState {
                                 r.position = temp_position + offset;
                             }
                         }
+                        Shape::Freehand(_f) => {
+                            todo!();
+                        }
                     }
                 }
             }
@@ -196,6 +247,7 @@ impl Reducible for ShapeCatalogState {
                             true => r.selected = true,
                             false => r.selected = false,
                         },
+                        Shape::Freehand(_f) => todo!(),
                     }
                 }
             }
@@ -207,21 +259,24 @@ impl Reducible for ShapeCatalogState {
                                 r.temp_position = Some(r.position);
                             }
                         }
+                        Shape::Freehand(_f) => {
+                            todo!()
+                        }
                     }
                 }
             }
             ShapeCatalogAction::SelectAll => {
                 for (_, s) in shapes.iter_mut() {
                     match s {
-                        Shape::Rectangle(r) => {
-                            r.selected = true;
-                        }
+                        Shape::Rectangle(r) => r.selected = true,
+                        Shape::Freehand(f) => f.selected = true,
                     }
                 }
             }
             ShapeCatalogAction::DeleteSelected => {
                 shapes.retain(|_, s| match s {
                     Shape::Rectangle(r) => !r.selected,
+                    Shape::Freehand(f) => !f.selected,
                 });
             }
             ShapeCatalogAction::DeletePrevious => {}

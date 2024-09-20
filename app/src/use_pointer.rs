@@ -28,17 +28,20 @@ pub fn use_pointer_down_callback(
             initial_drag.set(pointer_position);
             global_pointer_down.set(true);
 
+            let next_id = GUID_GENERATOR.next_guid();
+
             match current_tool {
                 Tool::Hand => temp_canvas_position.set((*camera).canvas_position()),
-                Tool::Rect => {
+                Tool::Freehand | Tool::Rect => {
                     shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);
-                    let next_id = GUID_GENERATOR.next_guid();
                     shape_catalog.dispatch(ShapeCatalogAction::UpsertShape {
                         id: next_id,
                         position: pointer_position,
                         width_height: CanvasPoint::new(0.0, 0.0),
                         selected: false,
+                        current_tool,
                     });
+
                     active_shape.set(Some(next_id));
                 }
                 Tool::Select => {
@@ -49,11 +52,12 @@ pub fn use_pointer_down_callback(
                     if shape_catalog.selected().next().is_none() {
                         selection_box.set(Some((pointer_position, CanvasPoint::new(0.0, 0.0))));
                     }
+
+                    active_shape.set(Some(next_id));
                 }
                 Tool::Text => {
                     shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);
                 }
-                _ => todo!(),
             }
         }
     })
@@ -99,13 +103,14 @@ pub fn use_pointer_move_callback(
                                 offset,
                             });
                         }
-                        Tool::Rect => {
+                        Tool::Freehand | Tool::Rect => {
                             if let Some(id) = *active_shape {
                                 shape_catalog.dispatch(ShapeCatalogAction::UpsertShape {
                                     id,
                                     position: box_position,
                                     width_height: box_width_height,
                                     selected: false,
+                                    current_tool,
                                 });
                             } else {
                                 panic!("no active shape")
@@ -130,7 +135,6 @@ pub fn use_pointer_move_callback(
                             };
                         }
                         Tool::Text => {}
-                        _ => todo!(),
                     }
                 }
             }
@@ -156,10 +160,14 @@ pub fn use_pointer_up_callback(
 
             match *current_tool {
                 Tool::Hand => temp_canvas_position.set((*camera).canvas_position()),
-                Tool::Rect | Tool::Circle | Tool::Line | Tool::Freehand => {
+                Tool::Rect => {
                     active_shape.set(None);
 
                     shape_catalog.dispatch(ShapeCatalogAction::SaveSelectedIds);
+                }
+
+                Tool::Freehand => {
+                    active_shape.set(None);
                 }
                 Tool::Select => {
                     selection_box.set(None);

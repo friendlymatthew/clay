@@ -3,6 +3,7 @@ use math::CanvasPoint;
 #[derive(Debug, PartialEq, Clone)]
 pub enum Shape {
     Rectangle(Rectangle),
+    Freehand(Freehand),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -40,32 +41,28 @@ impl Rectangle {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct Circle {
-    pub center: CanvasPoint,
-    pub radius: f32,
+pub struct Freehand {
+    pub position: Vec<CanvasPoint>,
     pub selected: bool,
-    pub temp_center: Option<CanvasPoint>,
 }
 
-impl Circle {
-    pub fn new(center: CanvasPoint, radius: f32, selected: bool) -> Self {
+impl Freehand {
+    pub fn new(p1: CanvasPoint, selected: bool) -> Self {
         Self {
-            center,
-            radius,
+            position: vec![p1],
             selected,
-            temp_center: None,
         }
     }
 
-    pub fn is_inside(&self, global_pointer: CanvasPoint) -> bool {
-        todo!();
+    pub fn update(&mut self, position: CanvasPoint, selected: bool) {
+        self.position.push(position);
+        self.selected = selected;
     }
 
-    pub fn intersects(&self, selection_box: (CanvasPoint, CanvasPoint)) -> bool {
-        todo!();
-    }
-
-    pub fn path(&self) -> String {
-        todo!();
+    pub fn paths(&self) -> impl Iterator<Item = String> + '_ {
+        self.position.iter().map(|c| {
+            let (x, y) = c.coord();
+            format!("M {x} {y} h 10.0 v 10.0 h -10.0 Z")
+        })
     }
 }

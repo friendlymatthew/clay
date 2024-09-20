@@ -19,23 +19,6 @@ pub static GUID_GENERATOR: GuidGenerator = GuidGenerator::new();
 
 #[function_component]
 pub fn Canvas() -> Html {
-    // global management
-    // use_effect(|| {
-    //     let listener = EventListener::new_with_options(
-    //         &window(),
-    //         "contextmenu",
-    //         EventListenerOptions {
-    //             passive: false,
-    //             phase: gloo::events::EventListenerPhase::Bubble,
-    //         },
-    //         move |e| {
-    //             e.prevent_default();
-    //         },
-    //     );
-
-    //     move || drop(listener)
-    // });
-
     let current_tool = use_state(|| Tool::Select);
     let camera = use_reducer(|| CameraState::default());
 
@@ -100,7 +83,7 @@ pub fn Canvas() -> Html {
                         "r" => Some(Tool::Rect),
                         // "c" => Some(Tool::Circle),
                         // "l" => Some(Tool::Line),
-                        // "f" => Some(Tool::Freehand),
+                        "f" => Some(Tool::Freehand),
                         _ => None,
                     } {
                         current_tool.set(tool);
@@ -131,7 +114,7 @@ pub fn Canvas() -> Html {
                 .expect("query failed");
 
             match tool {
-                Tool::Rect => {
+                Tool::Freehand | Tool::Rect => {
                     canvas_div
                         .set_attribute("class", "cursor-crosshair")
                         .expect("failed to set");
@@ -151,7 +134,6 @@ pub fn Canvas() -> Html {
                         .set_attribute("class", "cursor-text")
                         .expect("failed to set");
                 }
-                _ => todo!(),
             }
         }
     });
