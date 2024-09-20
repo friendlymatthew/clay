@@ -1,3 +1,4 @@
+use editor::Tool;
 use gloo::utils::document;
 use math::CanvasPoint;
 use yew::prelude::*;
@@ -9,6 +10,7 @@ pub struct InnerCanvasProps {
     pub camera: UseReducerHandle<CameraState>,
     pub shapes: UseReducerHandle<ShapeCatalogState>,
     pub selection_box: UseStateHandle<Option<(CanvasPoint, CanvasPoint)>>,
+    pub current_tool: Tool,
 }
 
 #[function_component]
@@ -68,7 +70,7 @@ pub fn InnerCanvas(props: &InnerCanvasProps) -> Html {
                 <circle id="circle" cx="200" cy="200" r="50" />
             </defs>
             <g id="group">
-                {(*props.shapes).html(&*camera_state)}
+                {(*props.shapes).html(&*camera_state, &props.current_tool)}
                 <path id="selected" />
             </g>
         </svg>

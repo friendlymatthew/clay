@@ -110,7 +110,9 @@ pub fn Canvas() -> Html {
                         "Escape" => shape_catalog.dispatch(ShapeCatalogAction::UnselectAll),
                         "a" => shape_catalog.dispatch(ShapeCatalogAction::SelectAll),
                         "z" => shape_catalog.dispatch(ShapeCatalogAction::DeletePrevious),
-                        "Backspace" => shape_catalog.dispatch(ShapeCatalogAction::DeleteSelected),
+                        "Backspace" | "d" => {
+                            shape_catalog.dispatch(ShapeCatalogAction::DeleteSelected)
+                        }
                         _ => {}
                     }
                 },
@@ -197,8 +199,8 @@ pub fn Canvas() -> Html {
 
     html! {
         <div id="canvas" class="overflow-hidden top-0 left-0 relative w-screen h-screen" onpointerdown={pointer_down_callback} onpointermove={pointer_move_callback} onpointerup={pointer_up_callback}>
-            <Toolbar current_tool={current_tool} client_position={*client_position} />
-            <InnerCanvas camera={camera} shapes={shape_catalog} selection_box={selection_box}/>
+            <Toolbar current_tool={current_tool.clone()} client_position={*client_position} />
+            <InnerCanvas camera={camera} shapes={shape_catalog} selection_box={selection_box} current_tool={*current_tool}/>
         </div>
     }
 }

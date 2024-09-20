@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use editor::{Rectangle, Shape};
+use editor::{Rectangle, Shape, Tool};
 use math::CanvasPoint;
 use yew::{classes, html, virtual_dom::VNode, Html, Reducible};
 
@@ -47,7 +47,7 @@ impl ShapeCatalogState {
             .collect::<Vec<_>>()
     }
 
-    pub fn html(&self, camera: &CameraState) -> VNode {
+    pub fn html(&self, camera: &CameraState, tool: &Tool) -> VNode {
         self.shapes
             .iter()
             .map(|(k, s)| {
@@ -66,9 +66,9 @@ impl ShapeCatalogState {
                         let z = camera.zoom();
 
                         let stroke_w = if r.selected {
-                            format!("stroke-width-[{}px]", 2 as f32 / z)
+                            format!("stroke-[{}px]", 2 as f32 / z)
                         } else {
-                            format!("stroke-width-1")
+                            format!("stroke-1")
                         };
 
                         let fill = if r.selected {
@@ -76,7 +76,13 @@ impl ShapeCatalogState {
                         } else {
                             "fill-orange-300"
                         };
-                        let class = classes!(stroke, stroke_w, fill);
+
+                        let state_tool = match tool {
+                            Tool::Select => "hover:fill-green-300 hover:stroke-blue-800",
+                            _ => "",
+                        };
+
+                        let class = classes!(stroke, stroke_w, fill, state_tool);
 
                         html! {
                             <path key={k} d={path} class={class}/>
