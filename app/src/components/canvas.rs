@@ -39,6 +39,7 @@ pub fn Canvas() -> Html {
 
     let global_pointer_down = use_state(|| false);
 
+    //
     // hand tool
     let initial_drag = use_state(|| CanvasPoint::new(0.0, 0.0));
     let temp_canvas_position = use_state(|| CanvasPoint::new(0.0, 0.0));
