@@ -156,7 +156,7 @@ pub fn use_pointer_up_callback(
 
             match *current_tool {
                 Tool::Hand => temp_canvas_position.set((*camera).canvas_position()),
-                Tool::Rect | Tool::Circle | Tool::Line | Tool::Freehand => {
+                Tool::Rect | Tool::Freehand => {
                     active_shape.set(None);
 
                     shape_catalog.dispatch(ShapeCatalogAction::SaveSelectedIds);

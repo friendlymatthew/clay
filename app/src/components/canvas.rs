@@ -98,8 +98,6 @@ pub fn Canvas() -> Html {
                         "s" => Some(Tool::Select),
                         "t" => Some(Tool::Text),
                         "r" => Some(Tool::Rect),
-                        // "c" => Some(Tool::Circle),
-                        // "l" => Some(Tool::Line),
                         // "f" => Some(Tool::Freehand),
                         _ => None,
                     } {
