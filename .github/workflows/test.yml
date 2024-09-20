@@ -16,16 +16,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-      - name: Setup toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly
-          targets: wasm32-unknown-unknown
-          components: rust-src
-      - uses: jetli/trunk-action@v0.4.0
-        with:
-          # Optional version of trunk to install(eg. 'v0.16.0', 'latest')
-          version: "latest"
+      - name: Install Rust
+        run: rustup target add wasm32-unknown-unknown
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli
+      - name: Install wasm-bindgen-test-runner
+        run: cargo install wasm-bindgen-test-runner
       - name: Install just
         run: |
           cargo install just
