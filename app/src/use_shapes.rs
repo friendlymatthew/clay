@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use editor::{Rectangle, Shape};
 use math::CanvasPoint;
-use yew::{classes, html, virtual_dom::VNode, Html, Reducible};
+use yew::{classes, html, virtual_dom::VNode, Classes, Html, Reducible};
 
 use crate::CameraState;
 
@@ -49,6 +49,11 @@ impl ShapeCatalogState {
     }
 
     pub fn html(&self, camera: &CameraState) -> VNode {
+        let z = camera.zoom();
+
+        let selected: Classes = format!("stroke-blue-800 stroke-w-[{z}px] fill-green-300").into();
+        let unselected: Classes = "stroke-black stroke-w-1 fill-orange-300".into();
+
         self.shapes
             .iter()
             .map(|(k, s)| {
@@ -58,26 +63,11 @@ impl ShapeCatalogState {
                     Shape::Rectangle(r) => {
                         let path = r.path();
 
-                        let stroke = if r.selected {
-                            "stroke-blue-800"
+                        let class = if r.selected {
+                            selected.clone()
                         } else {
-                            "stroke-black"
+                            unselected.clone()
                         };
-
-                        let z = camera.zoom();
-
-                        let stroke_w = if r.selected {
-                            format!("stroke-width-[{}px]", 2 as f32 / z)
-                        } else {
-                            format!("stroke-width-1")
-                        };
-
-                        let fill = if r.selected {
-                            "fill-green-300"
-                        } else {
-                            "fill-orange-300"
-                        };
-                        let class = classes!(stroke, stroke_w, fill);
 
                         html! {
                             <path key={k} d={path} class={class}/>
