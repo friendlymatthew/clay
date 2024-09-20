@@ -1,0 +1,35 @@
+name: test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "**.md"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install Nightly Rust
+        run: |
+          rustup toolchain install nightly
+          rustup default nightly
+      - name: Install wasm32-unknown-unknown
+        run: rustup target add wasm32-unknown-unknown --toolchain nightly
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli
+      - name: Install just
+        run: |
+          cargo install just
+      - name: Verify justfile
+        run: |
+          just --list
+      - name: Test crate
+        run: |
+          just test

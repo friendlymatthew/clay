@@ -15,17 +15,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
           targets: wasm32-unknown-unknown
           components: rust-src
-      - name: "Install other"
-        run: |
-          rustup default nightly
-          rustup component add rustfmt clippy
       - uses: jetli/trunk-action@v0.4.0
         with:
           # Optional version of trunk to install(eg. 'v0.16.0', 'latest')
