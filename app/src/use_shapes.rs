@@ -69,7 +69,7 @@ impl ShapeCatalogState {
                                 let key = format!("{i}");
 
                                 html! {
-                                    <path key={key} path={path} class={"fill-black"} />
+                                    <path key={key} d={path} class={"fill-black"} />
                                 }
                             })
                             .collect::<Html>();
