@@ -5,7 +5,7 @@ use gloo::{
 use web_sys::{console, wasm_bindgen::JsCast};
 use yew::prelude::*;
 
-use editor::Tool;
+use editor::{GuidGenerator, Tool};
 use math::CanvasPoint;
 
 use crate::{
@@ -14,6 +14,8 @@ use crate::{
     use_shapes::{ShapeCatalogAction, ShapeCatalogState},
     CameraState, CameraStateAction,
 };
+
+pub static GUID_GENERATOR: GuidGenerator = GuidGenerator::new();
 
 #[function_component]
 pub fn Canvas() -> Html {

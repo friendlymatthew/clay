@@ -5,5 +5,7 @@ edition = "2021"
 
 [dependencies]
 eyre.workspace = true
-
 math = { path = "../math" }
+
+[dev-dependencies]
+wasm-bindgen-test = { workspace = true }
