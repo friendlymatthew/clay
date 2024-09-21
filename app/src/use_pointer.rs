@@ -30,7 +30,7 @@ pub fn use_pointer_down_callback(
 
             match current_tool {
                 Tool::Hand => temp_canvas_position.set((*camera).canvas_position()),
-                Tool::Rect => {
+                Tool::Circle | Tool::Rect | Tool::Freehand => {
                     shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);
                     let next_id = GUID_GENERATOR.next_guid();
                     shape_catalog.dispatch(ShapeCatalogAction::UpsertShape {
@@ -38,6 +38,7 @@ pub fn use_pointer_down_callback(
                         position: pointer_position,
                         width_height: CanvasPoint::new(0.0, 0.0),
                         selected: false,
+                        current_tool,
                     });
                     active_shape.set(Some(next_id));
                 }
@@ -53,7 +54,6 @@ pub fn use_pointer_down_callback(
                 Tool::Text => {
                     shape_catalog.dispatch(ShapeCatalogAction::UnselectAll);
                 }
-                _ => todo!(),
             }
         }
     })
@@ -99,13 +99,27 @@ pub fn use_pointer_move_callback(
                                 offset,
                             });
                         }
-                        Tool::Rect => {
+                        Tool::Circle => {
+                            if let Some(id) = *active_shape {
+                                shape_catalog.dispatch(ShapeCatalogAction::UpsertShape {
+                                    id,
+                                    position: p1,
+                                    width_height: p2,
+                                    selected: false,
+                                    current_tool,
+                                });
+                            } else {
+                                panic!("no active shape");
+                            }
+                        }
+                        Tool::Rect | Tool::Freehand => {
                             if let Some(id) = *active_shape {
                                 shape_catalog.dispatch(ShapeCatalogAction::UpsertShape {
                                     id,
                                     position: box_position,
                                     width_height: box_width_height,
                                     selected: false,
+                                    current_tool,
                                 });
                             } else {
                                 panic!("no active shape")
@@ -130,7 +144,6 @@ pub fn use_pointer_move_callback(
                             };
                         }
                         Tool::Text => {}
-                        _ => todo!(),
                     }
                 }
             }
@@ -156,9 +169,8 @@ pub fn use_pointer_up_callback(
 
             match *current_tool {
                 Tool::Hand => temp_canvas_position.set((*camera).canvas_position()),
-                Tool::Rect | Tool::Freehand => {
+                Tool::Circle | Tool::Rect | Tool::Freehand => {
                     active_shape.set(None);
-
                     shape_catalog.dispatch(ShapeCatalogAction::SaveSelectedIds);
                 }
                 Tool::Select => {

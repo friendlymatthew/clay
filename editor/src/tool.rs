@@ -5,4 +5,5 @@ pub enum Tool {
     Freehand,
     Select,
     Text,
+    Circle,
 }

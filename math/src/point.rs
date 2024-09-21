@@ -100,6 +100,19 @@ macro_rules! impl_math {
             pub fn two(self) -> f32 {
                 f32x4_extract_lane::<1>(self.0)
             }
+
+            #[inline(always)]
+            pub fn sum(&self) -> f32 {
+                f32x4_extract_lane::<0>(self.0) + f32x4_extract_lane::<1>(self.0)
+            }
+
+            #[inline(always)]
+            pub fn euclid_dist(self, other: $ty) -> f32 {
+                let diff = self - other;
+                let sq_diff = diff * diff;
+
+                sq_diff.sum().sqrt()
+            }
         }
 
         impl PartialEq for $ty {

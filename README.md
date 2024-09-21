@@ -35,3 +35,4 @@ The effects of SIMD are not measured yet. An ad-hoc benchmark comparing `clay` a
 >
 > The implementations for converting from screen to canvas and finding the viewport can be found in Steve Ruiz's blog post above.
 
+[MDN's SVG Resource](https://developer.mozilla.org/en-US/docs/Web/SVG)
