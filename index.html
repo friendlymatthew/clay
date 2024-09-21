@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>clay</title>
+    
+<script type="module" nonce="wtDvAHiwnFc+VconL0tM3A==">
+import init, * as bindings from '/clay/app-229a3af650aa2a64.js';
+const wasm = await init('/clay/app-229a3af650aa2a64_bg.wasm');
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+    <link rel="stylesheet" href="/clay/index-95a303a1943b4cf7.css" integrity="sha384&#x2D;adgeWpwI6A5VmiWVSxfs6mCptAuwLUeF7cMOQws&#x2F;7apVarqqNAT9OeCusy4siy8N"/>
+
+<link rel="modulepreload" href="/clay/app-229a3af650aa2a64.js" crossorigin=anonymous integrity="sha384-2Lzph8RGqb2vUDMiX0XbJ6zevc5jZRkSk1yEjdzE6nCRUo7weJv+rFS56osGzx9q">
+<link rel="preload" href="/clay/app-229a3af650aa2a64_bg.wasm" crossorigin=anonymous integrity="sha384-6z2dXiJdPeAWc8ohYcUL3Ia0StwVL/96gSa5bVMIXGEdu9SRLEZlHpVMh/28MHvK" as="fetch" type="application/wasm"></head>
+
+<body></body>
+
+</html>
