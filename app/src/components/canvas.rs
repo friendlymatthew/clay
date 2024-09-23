@@ -99,7 +99,7 @@ pub fn Canvas() -> Html {
                         "t" => Some(Tool::Text),
                         "r" => Some(Tool::Rect),
                         "c" => Some(Tool::Circle),
-                        // "f" => Some(Tool::Freehand),
+                        "f" => Some(Tool::Freehand),
                         _ => None,
                     } {
                         current_tool.set(tool);

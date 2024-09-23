@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use editor::{Circle, Rectangle, Shape, Tool};
+use editor::{Circle, Freehand, Rectangle, Shape, Tool};
 use math::CanvasPoint;
 use yew::{html, virtual_dom::VNode, Classes, Html, Reducible};
 
@@ -44,6 +44,7 @@ impl ShapeCatalogState {
             .filter(|(_, s)| match s {
                 Shape::Rectangle(r) => r.selected,
                 Shape::Circle(c) => c.selected,
+                Shape::Freehand(f) => f.selected,
             })
             .map(|(&id, _)| id)
             .next()
@@ -59,6 +60,7 @@ impl ShapeCatalogState {
         self.shapes
             .iter()
             .map(|(k, s)| {
+
                 let k = format!("{k}");
 
                 match s {
@@ -73,6 +75,26 @@ impl ShapeCatalogState {
 
                         html! {
                             <path key={k} d={path} class={class} />
+                        }
+                    }
+                    Shape::Freehand(f) => {
+                        let line = f
+                            .points
+                            .iter()
+                            .enumerate()
+                            .map(|(id, p)| {
+                                let (x, y) = p.coord();
+
+                                html! {
+                                    <circle key={id.to_string()} class={"fill-black"} cx={format!("{x}")} cy={format!("{y}")} r="5" /> 
+                                }
+                            })
+                            .collect::<Html>();
+
+                        html! {
+                            <g key={k}>
+                                {line}
+                            </g>
                         }
                     }
                     Shape::Circle(c) => {
@@ -128,6 +150,10 @@ impl Reducible for ShapeCatalogState {
                             circle.radius = position.euclid_dist(width_height);
                             circle.selected = selected;
                         }
+                        Shape::Freehand(f) => {
+                            f.points.push(position);
+                            f.selected = selected;
+                        }
                     }
                 } else {
                     let new_shape = match current_tool {
@@ -140,9 +166,7 @@ impl Reducible for ShapeCatalogState {
                             let rectangle = Rectangle::new(position, width_height, selected);
                             Shape::Rectangle(rectangle)
                         }
-                        Tool::Freehand => {
-                            todo!();
-                        }
+                        Tool::Freehand => Shape::Freehand(Freehand::new(position, selected)),
                         _ => panic!("unallowed tool"),
                     };
 
@@ -155,6 +179,7 @@ impl Reducible for ShapeCatalogState {
                     match s {
                         Shape::Rectangle(r) => r.selected = false,
                         Shape::Circle(c) => c.selected = false,
+                        Shape::Freehand(f) => f.selected = false,
                     }
                 }
             }
@@ -185,6 +210,9 @@ impl Reducible for ShapeCatalogState {
                                 not_inside_any_shapes = false;
                             }
                         }
+                        Shape::Freehand(_f) => {
+                            // todo! implement freehand is inside
+                        }
                     }
                 }
 
@@ -193,6 +221,7 @@ impl Reducible for ShapeCatalogState {
                         match s {
                             Shape::Rectangle(r) => r.selected = false,
                             Shape::Circle(c) => c.selected = false,
+                            Shape::Freehand(f) => f.selected = false,
                         }
                     }
                 }
@@ -202,6 +231,7 @@ impl Reducible for ShapeCatalogState {
                         match s {
                             Shape::Rectangle(r) => r.selected = new_selection.contains(shape_id),
                             Shape::Circle(c) => c.selected = new_selection.contains(shape_id),
+                            Shape::Freehand(f) => f.selected = new_selection.contains(shape_id),
                         }
                     }
                 }
@@ -229,6 +259,7 @@ impl Reducible for ShapeCatalogState {
 
                             c.center = temp_center + offset;
                         }
+                        Shape::Freehand(_f) => {}
                     }
                 }
             }
@@ -237,6 +268,7 @@ impl Reducible for ShapeCatalogState {
                     match s {
                         Shape::Rectangle(r) => r.selected = r.intersects(selection_box),
                         Shape::Circle(c) => c.selected = c.intersects(selection_box),
+                        Shape::Freehand(f) => f.selected = f.intersects(selection_box),
                     }
                 }
             }
@@ -253,6 +285,11 @@ impl Reducible for ShapeCatalogState {
                                 c.temp_center = Some(c.center);
                             }
                         }
+                        Shape::Freehand(f) => {
+                            if f.selected {
+                                todo!();
+                            }
+                        }
                     }
                 }
             }
@@ -261,6 +298,7 @@ impl Reducible for ShapeCatalogState {
                     match s {
                         Shape::Rectangle(r) => r.selected = true,
                         Shape::Circle(c) => c.selected = true,
+                        Shape::Freehand(f) => f.selected = true,
                     }
                 }
             }
@@ -268,6 +306,7 @@ impl Reducible for ShapeCatalogState {
                 shapes.retain(|_, s| match s {
                     Shape::Rectangle(r) => !r.selected,
                     Shape::Circle(c) => !c.selected,
+                    Shape::Freehand(f) => !f.selected,
                 });
             }
             ShapeCatalogAction::DeletePrevious => {}

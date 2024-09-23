@@ -4,6 +4,7 @@ use math::CanvasPoint;
 pub enum Shape {
     Rectangle(Rectangle),
     Circle(Circle),
+    Freehand(Freehand),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -37,6 +38,25 @@ impl Rectangle {
         let (x, y) = self.position.coord();
         let (w, h) = self.width_height.coord();
         format!("M {x} {y} h {w} v {h} h -{w} Z")
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Freehand {
+    pub points: Vec<CanvasPoint>,
+    pub selected: bool,
+}
+
+impl Freehand {
+    pub fn new(point: CanvasPoint, selected: bool) -> Self {
+        Self {
+            points: vec![point],
+            selected,
+        }
+    }
+
+    pub fn intersects(&self, selection_box: (CanvasPoint, CanvasPoint)) -> bool {
+        false
     }
 }
 
