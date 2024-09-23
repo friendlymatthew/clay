@@ -86,18 +86,23 @@ impl ShapeCatalogState {
 
                                 let p1 = p[0];
                                 let p2 = p[1];
-
                                 let midpoint = p1.midpoint(p2);
+                                let mid_p1 = p1.midpoint(midpoint);
+                                let mid_p2 = midpoint.midpoint(p2);
+
 
                                 let (start_x, start_y) = p1.coord();
+                                let (mid_p1_x, mid_p1_y) = mid_p1.coord();
                                 let (mid_x, mid_y) = midpoint.coord();
+                                let (mid_p2_x, mid_p2_y) = mid_p2.coord();
                                 let (end_x, end_y) = p2.coord();
-
 
                                 html! {
                                     <>
-                                    <line x1={start_x.to_string()} y1={start_y.to_string()} x2={mid_x.to_string()} y2={mid_y.to_string()} stroke="black" stroke-width="4" stroke-linecap="round" />
-                                    <line x1={mid_x.to_string()} y1={mid_y.to_string()} x2={end_x.to_string()} y2={end_y.to_string()} stroke="black" stroke-width="4" stroke-linecap="round" />
+                                    <line x1={start_x.to_string()} y1={start_y.to_string()} x2={mid_p1_x.to_string()} y2={mid_p1_y.to_string()} stroke="black" stroke-width="4" stroke-linecap="round" />
+                                    <line x1={mid_p1_x.to_string()} y1={mid_p1_y.to_string()} x2={mid_x.to_string()} y2={mid_y.to_string()} stroke="black" stroke-width="4" stroke-linecap="round" />
+                                    <line x1={mid_x.to_string()} y1={mid_y.to_string()} x2={mid_p2_x.to_string()} y2={mid_p2_y.to_string()} stroke="black" stroke-width="4" stroke-linecap="round" />
+                                    <line x1={mid_p2_x.to_string()} y1={mid_p2_y.to_string()} x2={end_x.to_string()} y2={end_y.to_string()} stroke="black" stroke-width="4" stroke-linecap="round" />
                                     </>
                                 }
                             })
