@@ -60,7 +60,6 @@ impl ShapeCatalogState {
         self.shapes
             .iter()
             .map(|(k, s)| {
-
                 let k = format!("{k}");
 
                 match s {
@@ -78,32 +77,44 @@ impl ShapeCatalogState {
                         }
                     }
                     Shape::Freehand(f) => {
-                        let line = f
+                        let points = f
                             .points
                             .windows(2)
-                            .enumerate()
-                            .map(|(id, p)| {
-
+                            .flat_map(|p| {
                                 let p1 = p[0];
                                 let p2 = p[1];
                                 let midpoint = p1.midpoint(p2);
                                 let mid_p1 = p1.midpoint(midpoint);
                                 let mid_p2 = midpoint.midpoint(p2);
 
+                                vec![p1, mid_p1, midpoint, mid_p2, p2].into_iter()
+                            })
+                            .collect::<Vec<CanvasPoint>>();
+
+                        let points = points
+                            .windows(3)
+                            .map(|p| {
+                                let p1 = p[0];
+                                let p2 = p[1];
+                                let p3 = p[2];
+
+                                let point = (p1 + p2 + p3) / CanvasPoint::new(3.0, 3.0);
+
+                                point
+                            })
+                            .collect::<Vec<CanvasPoint>>();
+
+                        let line = points
+                            .windows(2)
+                            .map(|p| {
+                                let p1 = p[0];
+                                let p2 = p[1];
 
                                 let (start_x, start_y) = p1.coord();
-                                let (mid_p1_x, mid_p1_y) = mid_p1.coord();
-                                let (mid_x, mid_y) = midpoint.coord();
-                                let (mid_p2_x, mid_p2_y) = mid_p2.coord();
                                 let (end_x, end_y) = p2.coord();
 
                                 html! {
-                                    <>
-                                    <line x1={start_x.to_string()} y1={start_y.to_string()} x2={mid_p1_x.to_string()} y2={mid_p1_y.to_string()} stroke="black" stroke-width="4" stroke-linecap="round" />
-                                    <line x1={mid_p1_x.to_string()} y1={mid_p1_y.to_string()} x2={mid_x.to_string()} y2={mid_y.to_string()} stroke="black" stroke-width="4" stroke-linecap="round" />
-                                    <line x1={mid_x.to_string()} y1={mid_y.to_string()} x2={mid_p2_x.to_string()} y2={mid_p2_y.to_string()} stroke="black" stroke-width="4" stroke-linecap="round" />
-                                    <line x1={mid_p2_x.to_string()} y1={mid_p2_y.to_string()} x2={end_x.to_string()} y2={end_y.to_string()} stroke="black" stroke-width="4" stroke-linecap="round" />
-                                    </>
+                                    <line x1={start_x.to_string()} y1={start_y.to_string()} x2={end_x.to_string()} y2={end_y.to_string()} stroke="black" stroke-width="4" stroke-linecap="round" />
                                 }
                             })
                             .collect::<Html>();
