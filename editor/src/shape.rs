@@ -3,6 +3,7 @@ use math::CanvasPoint;
 #[derive(Debug, PartialEq, Clone)]
 pub enum Shape {
     Rectangle(Rectangle),
+    Circle(Circle),
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -58,14 +59,15 @@ impl Circle {
     }
 
     pub fn is_inside(&self, global_pointer: CanvasPoint) -> bool {
-        todo!();
+        self.center.euclid_dist(global_pointer) <= self.radius
     }
 
     pub fn intersects(&self, selection_box: (CanvasPoint, CanvasPoint)) -> bool {
-        todo!();
-    }
+        // we need to find the closest point of the selection box to the center
+        let closest_box_point = self
+            .center
+            .clamp(selection_box.0, selection_box.0 + selection_box.1);
 
-    pub fn path(&self) -> String {
-        todo!();
+        closest_box_point.euclid_dist(self.center) <= self.radius
     }
 }

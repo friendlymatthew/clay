@@ -98,6 +98,7 @@ pub fn Canvas() -> Html {
                         "s" => Some(Tool::Select),
                         "t" => Some(Tool::Text),
                         "r" => Some(Tool::Rect),
+                        "c" => Some(Tool::Circle),
                         // "f" => Some(Tool::Freehand),
                         _ => None,
                     } {
@@ -127,7 +128,7 @@ pub fn Canvas() -> Html {
                 .expect("query failed");
 
             match tool {
-                Tool::Rect => {
+                Tool::Circle | Tool::Freehand | Tool::Rect => {
                     canvas_div
                         .set_attribute("class", "cursor-crosshair")
                         .expect("failed to set");
@@ -147,7 +148,6 @@ pub fn Canvas() -> Html {
                         .set_attribute("class", "cursor-text")
                         .expect("failed to set");
                 }
-                _ => todo!(),
             }
         }
     });

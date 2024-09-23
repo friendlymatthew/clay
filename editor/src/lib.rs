@@ -4,7 +4,7 @@ mod tool;
 
 pub use guid::GuidGenerator;
 use math::CanvasPoint;
-pub use shape::{Rectangle, Shape};
+pub use shape::*;
 pub use tool::Tool;
 
 pub fn get_box(p1: CanvasPoint, p2: CanvasPoint) -> (CanvasPoint, CanvasPoint) {

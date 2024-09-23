@@ -1,8 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use editor::{Rectangle, Shape};
+use editor::{Circle, Rectangle, Shape, Tool};
 use math::CanvasPoint;
-use yew::{classes, html, virtual_dom::VNode, Classes, Html, Reducible};
+use yew::{html, virtual_dom::VNode, Classes, Html, Reducible};
 
 use crate::CameraState;
 
@@ -12,6 +12,7 @@ pub enum ShapeCatalogAction {
         position: CanvasPoint,
         width_height: CanvasPoint,
         selected: bool,
+        current_tool: Tool,
     },
     UpsertSelectedShapes {
         offset: CanvasPoint,
@@ -42,6 +43,7 @@ impl ShapeCatalogState {
             .iter()
             .filter(|(_, s)| match s {
                 Shape::Rectangle(r) => r.selected,
+                Shape::Circle(c) => c.selected,
             })
             .map(|(&id, _)| id)
             .next()
@@ -70,7 +72,20 @@ impl ShapeCatalogState {
                         };
 
                         html! {
-                            <path key={k} d={path} class={class}/>
+                            <path key={k} d={path} class={class} />
+                        }
+                    }
+                    Shape::Circle(c) => {
+                        let (x, y) = c.center.coord();
+                        let r = format!("{}", c.radius);
+                        let class = if c.selected {
+                            selected.clone()
+                        } else {
+                            unselected.clone()
+                        };
+
+                        html! {
+                            <circle class={class} cx={format!("{x}")} cy={format!("{y}")} r={r} />
                         }
                     }
                 }
@@ -98,6 +113,7 @@ impl Reducible for ShapeCatalogState {
                 position,
                 width_height,
                 selected,
+                current_tool,
             } => {
                 if let Some(shape) = shapes.get_mut(&id) {
                     match shape {
@@ -107,11 +123,30 @@ impl Reducible for ShapeCatalogState {
                             rectangle.width_height = width_height;
                             rectangle.selected = selected;
                         }
+                        Shape::Circle(circle) => {
+                            circle.center = position;
+                            circle.radius = position.euclid_dist(width_height);
+                            circle.selected = selected;
+                        }
                     }
                 } else {
-                    // Insert a new shape if not found
-                    let rectangle = Rectangle::new(position, width_height, selected);
-                    shapes.insert(id, Shape::Rectangle(rectangle));
+                    let new_shape = match current_tool {
+                        Tool::Circle => {
+                            let circle = Circle::new(position, 0.0, selected);
+
+                            Shape::Circle(circle)
+                        }
+                        Tool::Rect => {
+                            let rectangle = Rectangle::new(position, width_height, selected);
+                            Shape::Rectangle(rectangle)
+                        }
+                        Tool::Freehand => {
+                            todo!();
+                        }
+                        _ => panic!("unallowed tool"),
+                    };
+
+                    shapes.insert(id, new_shape);
                 }
             }
             ShapeCatalogAction::UnselectAll => {
@@ -119,6 +154,7 @@ impl Reducible for ShapeCatalogState {
                 for (_, s) in shapes.iter_mut() {
                     match s {
                         Shape::Rectangle(r) => r.selected = false,
+                        Shape::Circle(c) => c.selected = false,
                     }
                 }
             }
@@ -139,6 +175,16 @@ impl Reducible for ShapeCatalogState {
                                 not_inside_any_shapes = false;
                             }
                         }
+                        Shape::Circle(c) => {
+                            if c.is_inside(point) {
+                                if !c.selected {
+                                    c.selected = true;
+                                    new_selection.insert(*shape_id);
+                                }
+
+                                not_inside_any_shapes = false;
+                            }
+                        }
                     }
                 }
 
@@ -146,6 +192,7 @@ impl Reducible for ShapeCatalogState {
                     for (_, s) in shapes.iter_mut() {
                         match s {
                             Shape::Rectangle(r) => r.selected = false,
+                            Shape::Circle(c) => c.selected = false,
                         }
                     }
                 }
@@ -154,6 +201,7 @@ impl Reducible for ShapeCatalogState {
                     for (shape_id, s) in shapes.iter_mut() {
                         match s {
                             Shape::Rectangle(r) => r.selected = new_selection.contains(shape_id),
+                            Shape::Circle(c) => c.selected = new_selection.contains(shape_id),
                         }
                     }
                 }
@@ -172,16 +220,23 @@ impl Reducible for ShapeCatalogState {
                                 r.position = temp_position + offset;
                             }
                         }
+                        Shape::Circle(c) => {
+                            let temp_center = if let Some(tp) = c.temp_center {
+                                tp
+                            } else {
+                                c.center
+                            };
+
+                            c.center = temp_center + offset;
+                        }
                     }
                 }
             }
             ShapeCatalogAction::SelectIntersecting { selection_box } => {
                 for (_, s) in shapes.iter_mut() {
                     match s {
-                        Shape::Rectangle(r) => match r.intersects(selection_box) {
-                            true => r.selected = true,
-                            false => r.selected = false,
-                        },
+                        Shape::Rectangle(r) => r.selected = r.intersects(selection_box),
+                        Shape::Circle(c) => c.selected = c.intersects(selection_box),
                     }
                 }
             }
@@ -193,21 +248,26 @@ impl Reducible for ShapeCatalogState {
                                 r.temp_position = Some(r.position);
                             }
                         }
+                        Shape::Circle(c) => {
+                            if c.selected {
+                                c.temp_center = Some(c.center);
+                            }
+                        }
                     }
                 }
             }
             ShapeCatalogAction::SelectAll => {
                 for (_, s) in shapes.iter_mut() {
                     match s {
-                        Shape::Rectangle(r) => {
-                            r.selected = true;
-                        }
+                        Shape::Rectangle(r) => r.selected = true,
+                        Shape::Circle(c) => c.selected = true,
                     }
                 }
             }
             ShapeCatalogAction::DeleteSelected => {
                 shapes.retain(|_, s| match s {
                     Shape::Rectangle(r) => !r.selected,
+                    Shape::Circle(c) => !c.selected,
                 });
             }
             ShapeCatalogAction::DeletePrevious => {}
