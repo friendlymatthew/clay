@@ -21,3 +21,6 @@ bench:
 
 run:
     cd app && trunk serve
+
+profile:
+    cd app && trunk serve --release

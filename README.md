@@ -1,10 +1,10 @@
 # clay
 
-This crate aims to provide a interactive design tool as a functional Yew component. Currently, `clay` can move and draw rectangles on an infinite canvas.
+This crate aims to provide a interactive design tool as a functional Yew component. Currently, `clay` can move around and freehand, draw rectangles or circles on an infinite canvas.
 
 `clay` heavily relies on wasm32 SIMD intrinsics. Since this problem space is bound to planar and spatial operations, this crate aims to implement every geometric operation in SIMD.
 
-The most immediate task is to implement zooming. There isn't a clear roadmap but most exciting ideas are persisting shapes to disk, writing freehand, simple multicollaboration, and drawing circles.
+The most immediate task is to implement zooming. There isn't a clear roadmap but most exciting ideas are persisting shapes to disk and simple multicollaboration.
 
 ## How to Run
 > *These instructions make use of `just`. To install, simply `cargo install just`*
@@ -13,12 +13,12 @@ The most immediate task is to implement zooming. There isn't a clear roadmap but
 
 To run the app:
 ```bash
-cd app && trunk serve
+just run    
 ```
 
-To compile the `math` crate:
+To compile or test the `math` crate:
 ```bash
-cd math && just build
+cd math && just build # or just test
 ```
 
 ## Performance

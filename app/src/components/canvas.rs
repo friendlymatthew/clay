@@ -9,33 +9,16 @@ use editor::{GuidGenerator, Tool};
 use math::CanvasPoint;
 
 use crate::{
-    components::{InnerCanvas, Toolbar},
-    use_pointer_down_callback, use_pointer_move_callback, use_pointer_up_callback,
-    use_shapes::{ShapeCatalogAction, ShapeCatalogState},
-    CameraState, CameraStateAction,
+    CameraState,
+    CameraStateAction, components::{InnerCanvas, Toolbar}, use_pointer_down_callback,
+    use_pointer_move_callback,
+    use_pointer_up_callback, use_shapes::{ShapeCatalogAction, ShapeCatalogState},
 };
 
 pub static GUID_GENERATOR: GuidGenerator = GuidGenerator::new();
 
 #[function_component]
 pub fn Canvas() -> Html {
-    // global management
-    // use_effect(|| {
-    //     let listener = EventListener::new_with_options(
-    //         &window(),
-    //         "contextmenu",
-    //         EventListenerOptions {
-    //             passive: false,
-    //             phase: gloo::events::EventListenerPhase::Bubble,
-    //         },
-    //         move |e| {
-    //             e.prevent_default();
-    //         },
-    //     );
-
-    //     move || drop(listener)
-    // });
-
     let current_tool = use_state(|| Tool::Select);
     let camera = use_reducer(|| CameraState::default());
 
