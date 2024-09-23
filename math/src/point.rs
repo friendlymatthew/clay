@@ -124,6 +124,11 @@ macro_rules! impl_math {
             pub fn clamp(&self, min_box: $ty, max_box: $ty) -> $ty {
                 <$ty>::from_v128(f32x4_pmin(f32x4_pmax(self.0, min_box.0), max_box.0))
             }
+
+            #[inline(always)]
+            pub fn midpoint(self, other: $ty) -> $ty {
+                (self + other) / <$ty>::new(2.0, 2.0)
+            }
         }
 
         impl PartialEq for $ty {

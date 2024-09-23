@@ -83,11 +83,22 @@ impl ShapeCatalogState {
                             .windows(2)
                             .enumerate()
                             .map(|(id, p)| {
-                                let (start_x, start_y) = p[0].coord();
-                                let (end_x, end_y) = p[1].coord(); 
+
+                                let p1 = p[0];
+                                let p2 = p[1];
+
+                                let midpoint = p1.midpoint(p2);
+
+                                let (start_x, start_y) = p1.coord();
+                                let (mid_x, mid_y) = midpoint.coord();
+                                let (end_x, end_y) = p2.coord();
+
 
                                 html! {
-                                    <line key={id.to_string()} x1={start_x.to_string()} y1={start_y.to_string()} x2={end_x.to_string()} y2={end_y.to_string()} stroke="black" stroke-width="4" stroke-linecap="round" />
+                                    <>
+                                    <line x1={start_x.to_string()} y1={start_y.to_string()} x2={mid_x.to_string()} y2={mid_y.to_string()} stroke="black" stroke-width="4" stroke-linecap="round" />
+                                    <line x1={mid_x.to_string()} y1={mid_y.to_string()} x2={end_x.to_string()} y2={end_y.to_string()} stroke="black" stroke-width="4" stroke-linecap="round" />
+                                    </>
                                 }
                             })
                             .collect::<Html>();
