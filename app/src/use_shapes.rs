@@ -80,13 +80,14 @@ impl ShapeCatalogState {
                     Shape::Freehand(f) => {
                         let line = f
                             .points
-                            .iter()
+                            .windows(2)
                             .enumerate()
                             .map(|(id, p)| {
-                                let (x, y) = p.coord();
+                                let (start_x, start_y) = p[0].coord();
+                                let (end_x, end_y) = p[1].coord(); 
 
                                 html! {
-                                    <circle key={id.to_string()} class={"fill-black"} cx={format!("{x}")} cy={format!("{y}")} r="5" /> 
+                                    <line key={id.to_string()} x1={start_x.to_string()} y1={start_y.to_string()} x2={end_x.to_string()} y2={end_y.to_string()} stroke="black" stroke-width="4" />
                                 }
                             })
                             .collect::<Html>();
