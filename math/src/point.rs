@@ -1,6 +1,7 @@
 use std::arch::wasm::{
     f32x4, f32x4_abs, f32x4_add, f32x4_div, f32x4_extract_lane, f32x4_ge, f32x4_gt, f32x4_le,
-    f32x4_mul, f32x4_pmin, f32x4_splat, f32x4_sqrt, f32x4_sub, i32x4_extract_lane, v128,
+    f32x4_mul, f32x4_pmax, f32x4_pmin, f32x4_splat, f32x4_sqrt, f32x4_sub, i32x4_extract_lane,
+    v128,
 };
 use std::cmp::Ordering;
 use std::ops::{Add, Div, Mul, Sub};
@@ -85,6 +86,11 @@ macro_rules! impl_math {
             }
 
             #[inline(always)]
+            pub fn max(self, other: $ty) -> Self {
+                <$ty>::from_v128(f32x4_pmax(self.0, other.0))
+            }
+
+            #[inline(always)]
             pub fn le_or(self, other: $ty) -> bool {
                 let res = f32x4_le(self.0, other.0);
 
@@ -112,6 +118,11 @@ macro_rules! impl_math {
                 let sq_diff = diff * diff;
 
                 sq_diff.sum().sqrt()
+            }
+
+            #[inline(always)]
+            pub fn clamp(&self, min_box: $ty, max_box: $ty) -> $ty {
+                <$ty>::from_v128(f32x4_pmin(f32x4_pmax(self.0, min_box.0), max_box.0))
             }
         }
 
@@ -181,5 +192,14 @@ mod tests {
         let p2 = CanvasPoint::new(3.2, 4.3);
 
         assert_eq!(p1 + p2, CanvasPoint::new(3.2, 6.3));
+    }
+
+    #[wasm_bindgen_test]
+    fn clamp() {
+        assert_eq!(
+            CanvasPoint::new(34.5, 70.40),
+            CanvasPoint::new(34.5, 68.9)
+                .clamp(CanvasPoint::new(20.30, 70.40), CanvasPoint::new(45.0, 78.9))
+        )
     }
 }

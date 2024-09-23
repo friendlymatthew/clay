@@ -63,6 +63,11 @@ impl Circle {
     }
 
     pub fn intersects(&self, selection_box: (CanvasPoint, CanvasPoint)) -> bool {
-        todo!();
+        // we need to find the closest point of the selection box to the center
+        let closest_box_point = self
+            .center
+            .clamp(selection_box.0, selection_box.0 + selection_box.1);
+
+        closest_box_point.euclid_dist(self.center) <= self.radius
     }
 }
