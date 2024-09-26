@@ -1,10 +1,14 @@
 # clay
 
+<img src="./gocoturtle.png" alt="Goco Turtle" />
+
+<br>
+
 This crate aims to provide a interactive design tool as a functional Yew component. Currently, `clay` can move around and freehand, draw rectangles or circles on an infinite canvas.
 
-`clay` heavily relies on wasm32 SIMD intrinsics. Since this problem space is bound to planar and spatial operations, this crate aims to implement every geometric operation in SIMD.
+`clay` heavily relies on wasm32 SIMD intrinsics. Since this problem space is bound to planar and spatial operations, this crate also aims to implement every geometric operation in SIMD.
 
-The most immediate task is to implement zooming. There isn't a clear roadmap but most exciting ideas are persisting shapes to disk and simple multicollaboration.
+There isn't a clear roadmap ahead but most exciting ideas are persisting shapes to disk and simple multicollaboration.
 
 ## How to Run
 > *These instructions make use of `just`. To install, simply `cargo install just`*
